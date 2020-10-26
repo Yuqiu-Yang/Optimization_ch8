@@ -1,0 +1,47 @@
+---
+title: "Introduction to Optimization and Nonlinear Equations"
+author: "Zeyu Lu & Yuqiu Yang"
+output: 
+  beamer_presentation:
+    theme: "Berkeley"
+    colortheme: "dolphin"
+    fonttheme: "structurebold"
+    toc: true
+    slide_level: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(out.width = '50%')
+library(latex2exp)
+```
+
+# Safe Univariate Methods:
+Unimodal function defined on a discrete set of points.  
+For example
+```{r, simple example, fig.cap="An example", echo=FALSE, fig.align='center', out.width='70%', echo=FALSE}
+x <- -5 : 5 
+y <- -x^2
+plot(x, y, pch = 19, cex = 2,
+    xlab= "x", ylab = TeX("$$f(x) = -x^2$$"),
+    ylim = c(-26, 2))
+points(0, 0, cex = 5, col = "red", pch = 1)
+```
+## Lattice Search
+
+
+
+
+## Golden Search
+
+
+
+## Bisection
+
+# Root finding 
+
+
+# Stopping and Condition 
+
+
+# Multivariate Newton's Methods 
+
