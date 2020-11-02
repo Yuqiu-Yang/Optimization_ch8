@@ -1,6 +1,8 @@
 ---
 title: "Introduction to Optimization and Nonlinear Equations"
 author: "Zeyu Lu & Yuqiu Yang"
+header-includes:
+  - \usepackage{subfig}
 output: 
   beamer_presentation:
     theme: "Berkeley"
@@ -11,21 +13,16 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(out.width = '50%')
+knitr::opts_chunk$set(echo = FALSE)
 library(latex2exp)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
 ```
 
 # Safe Univariate Methods:
-Unimodal function defined on a discrete set of points.  
-For example
-```{r, simple example, fig.cap="An example", echo=FALSE, fig.align='center', out.width='70%', echo=FALSE}
-x <- -5 : 5 
-y <- -x^2
-plot(x, y, pch = 19, cex = 2,
-    xlab= "x", ylab = TeX("$$f(x) = -x^2$$"),
-    ylim = c(-26, 2))
-points(0, 0, cex = 5, col = "red", pch = 1)
-```
+
 ## Lattice Search
 
 
@@ -39,9 +36,203 @@ points(0, 0, cex = 5, col = "red", pch = 1)
 
 # Root finding 
 
+## Newton's Method 
+
+
+## The Secant Method 
+If $g'$ is hard or even impossible to find, we can approximate $g'(x) \approx \dfrac{g(x+h)-g(x)}{h}$. \linebreak
+\linebreak
+The iteration formula now becomes $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g(x_n) - g(x_{n-1})}$\linebreak
+\linebreak
+Notice two initial approximations are required instead of one like the Newton's method.
+
+## The Secant Method: Geometrical Interpretation
+Let $f(x) = sin(x) - (\dfrac{x}{2})^2$, $x_0 = -1.5$ and $x_{1} = 1.5$
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x <- seq(-2, 3, by = 0.01)
+y <- function(x){sin(x) - x^2/4}
+dy <- function(x) {cos(x) - x/2}
+plot(x, y(x), type = 'l',
+     main = "1st iteration Newton vs. Secant")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- -1.5
+b <- dy(x0)
+a <- y(x0) - b * (x0)
+newton_line <-  b * x + a
+lines(x, newton_line, col = "salmon")
+points(-a/b, 0, pch = 19, cex = 2, 
+       col = "salmon")
+x1 <- 1.5
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+points(-a/b, 0, pch = 19, cex = 2, 
+       col = "darkorchid")
+points(x0, y(x0))
+points(x1, y(x1))
+arrows(x0, -1, x0, y(x0), 
+       angle = 20)
+text(x0, -0.8, "x0 = -1.5")
+arrows(x1, -0.1, x1, y(x1), 
+       angle = 20)
+text(x1, -0.3 , "x1 = 1.5")
+legend("bottom", legend = c("Newton", "Secant",
+                            "Newton 1st iter",
+                            "Secant 1st iter"),
+       col = c("salmon", "darkorchid"),
+       lty = c(1,1,NA,NA),
+       pch = c(NA,NA,19,19),
+       bty = "n")
+```
+\noindent $x_{n + 1}$ is taken to be the abscissa of the point of intersection between the secant through $(x_{n-1}, f(x_{n-1}))$ and $(x_{n}, f(x_{n}))$ and the x-axis.
+
+## The Secant Method: An Example
+::: columns
+:::: column
+Let $f(x) = sin(x) - (\dfrac{x}{2})^2$\linebreak
+$x_0 = -1.5$ and $x_{1} = 1.5$\linebreak 
+```{r, echo=FALSE, fig.height=11}
+x <- seq(-2, 3, by = 0.01)
+y <- function(x){sin(x) - x^2/4}
+plot(x, y(x), type = 'l',
+     main = "Secant method")
+abline(h = 0, col = "cyan", lwd = 2)
+secant_method_ex <- function(FUN = y, x0, x1, e_tol = 1e-5)
+{
+  xn <- c(x0, x1)
+  fn <- c(y(x0), y(x1))
+  i <-  3
+  err <- Inf
+  while(err > e_tol)
+  {
+    b <- (y(xn[i-1]) - y(xn[i-2]))/(xn[i-1]-xn[i-2])
+    a <- y(xn[i-2]) - b * (xn[i-2])
+    xn <- c(xn, -a/b)
+    fn <- c(fn, y(-a/b))
+    err <- abs(y(-a/b))
+    i <- i + 1
+  }
+  return(list(fn = fn,
+              xn = xn,
+              err = err))
+}
+temp <- secant_method_ex(y, -1.5,1.5)
+points(temp$xn, temp$fn, pch = 19, cex =2.5,
+       col = rgb(153/255, 50/255, 204/255, 
+                 seq(0.1,1, length.out = length(temp$xn))))
+```
+::::
+:::: column
+```{r}
+######
+temp_df <- data.frame(matrix(NA, nrow = length(temp$fn),
+                             ncol = 3))
+colnames(temp_df) <- c("n", "xn", "fn")
+temp_df$n <- 0:11
+temp_df$xn <- temp$xn
+temp_df$fn <- temp$fn
+knitr::kable(temp_df, "simple")
+
+```
+::::
+:::
+
+## The Secant Method: Several Definitions 
+Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we will define:\linebreak
+\linebreak
+$int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\linebreak
+\linebreak
+The divided differences \[g[x_0, x_1, \dots, x_j, x] = \dfrac{g[x_0, x_1, \dots, x_{j-1}, x] - g[x_0, x_1, \dots, x_j]}{x - x_j}\], and \[g[x_0, x] = \dfrac{g(x) - g(x_0)}{x - x_0}\]
+
+## The Secant Method: Newton's Interpolation Formula 
+Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we can interpolate these points using a polynomial $q(x)$ of degree $n$.\linebreak
+Specifically, \[q(x) = g(x_0) + \sum_{j=1}^n g[x_0, x_1, \dots, x_j]\prod_{i=0}^{j-1}(x-x_i)\], with the remainder \[g(x) - q(x) = \dfrac{g^{n+1}(\xi)\prod_{i = 0}^n(x-x_i)}{(n+1)!}\], where $\xi \in int(x_0, x_1, \dots, x_n, x)$
+
+## The Secant Method: Order of convergence 
+According to Newton's interpolation formula, we have \[g(x) = g(x_n) + (x-x_n)g[x_{n-1},x_n]+\dfrac{1}{2}(x-x_n)(x-x_{n-1})g''(\xi)\] where $g[x_{n-1},x_n] = \dfrac{g(x_n)-g(x_{n-1})}{x_n-x_{n-1}}$, and $\xi \in int(x, x_n, x_{n-1})$\linebreak
+\linebreak
+By the Secant Method, we have $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g(x_n) - g(x_{n-1})}\Rightarrow \linebreak \linebreak
+0 = g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n]$
+
+## The Secant Method: Order of convergence 
+Let the root the Secant Method approaches be $c$, then
+\[0=g(c)-g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
+\[g[x_{n-1},x_n](c-x_{n+1}) + \dfrac{1}{2}(c-x_n)(c-x_{n-1})g''(\xi)\]
+By the mean value theorem, we have 
+\[g[x_{n-1},x_n] = g'(\eta), \eta\in (x_{n-1},x_n)\]
+Let $\epsilon_n = c - x_n$, we get $0=g'(\eta)\epsilon_{n+1} + \dfrac{1}{2}\epsilon_n \epsilon_{n-1}g''(\xi)\Rightarrow \linebreak 
+\epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$
+
+## The Secant Method: Order of convergence 
+Now suppose the Secant Method converges, then when $n\rightarrow \infty$, $\xi \approx c$ and $\eta \approx c$. Let $C = \dfrac{g''(c)}{2g'(c)}$, then $|\epsilon_{n+1}| = C|\epsilon_n| |\epsilon_{n-1}|$\linebreak\linebreak
+To find the order of convergence, we find $p$ such that $|\epsilon_{n+1}|\approx M|\epsilon_n|^p \Rightarrow \linebreak
+M|\epsilon_n|^p = MM|\epsilon_{n-1}|^{p}|\epsilon_{n-1}| \Rightarrow 
+|\epsilon_n| = M|\epsilon_{n-1}|^{(1+p)/p}$\linebreak
+This implies $p = (1+p)/p \Rightarrow p = 1+\phi \approx 1.618$\linebreak\linebreak
+Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic convergence), the convergence rate of the Secant Method is called \emph{superlinear}.
+
+## The Secant Method: Pros and Cons
+1. Pros:
+  + Superlinear convergence 
+  + No need to evaluate derivatives 
+2. Cons:
+  + Convergence is not guaranteed 
+
+::: columns
+:::: column
+```{r}
+y <- function(x){x^2}
+x <- seq(-3,3,by = 0.01)
+plot(x, y(x), type = "l", main = "First iteration")
+x0 <- 1
+x1 <- -2
+points(x0, y(x0))
+points(x1, y(x1))
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+arrows(x0, 4, x0, y(x0), 
+       angle = 20)
+text(x0, 4.2, "x0 = 1")
+arrows(x1, 1.7, x1, y(x1), 
+       angle = 20)
+text(x1, 1.5 , "x1 = -2")
+abline(h = 0, col = "cyan", lwd = 2)
+points(-a/b, 0)
+x2 <- -a/b
+arrows(2.5 , 2, x2, 0,angle = 20)
+text(2.5, 2.1 , "x2 = 2")
+```
+::::
+:::: column
+```{r}
+plot(x, y(x), type = "l", main = "Second iteration")
+x0 <- -2
+x1 <- 2
+points(x0, y(x0))
+points(x1, y(x1))
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+arrows(x0, 1.7, x0, y(x0), 
+       angle = 20)
+text(x0, 1.5, "x1 = -2")
+arrows(x1, 1.7, x1, y(x1), 
+       angle = 20)
+text(x1, 1.5 , "x2 = 2")
+
+```
+::::
+:::
+
+## Regula Falsi 
+
+
+## Illinois Algorithm
+
 
 # Stopping and Condition 
-
-
-# Multivariate Newton's Methods 
 
