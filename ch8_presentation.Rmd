@@ -178,6 +178,7 @@ Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic co
   + No need to evaluate derivatives 
 2. Cons:
   + Convergence is not guaranteed 
+  + Not well behaved when $g$ is relatively flat
 
 ::: columns
 :::: column
@@ -228,10 +229,141 @@ text(x1, 1.5 , "x2 = 2")
 ::::
 :::
 
-## Regula Falsi 
+## Regula Falsi: A Motivative Example
+Borrowing the idea of the Bisection Method, what if we start with two points that straddle the root? 
+```{r, fig.width=7, fig.height=4.5}
+y <- function(x){x^3 - 1}
+x <- seq(-0.5,2.5, 0.1)
+plot(x,y(x), type = "l", 
+     ylab = TeX("$x^3 - 1$"),
+     main = "1st Iteration")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- 2
+x1 <- 0
+points(x0, y(x0))
+points(x1, y(x1))
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+points(-a/b, 0)
+x2 <- -a/b
+arrows(x2, 4, x2, 0, 
+       angle = 20)
+text(x2, 4.2, "x2 = 0.25")
+arrows(x0, 1, x0, y(x0), 
+       angle = 20)
+text(x0, 0.8, "x0 = 2")
+arrows(x1, 2, x1, y(x1), 
+       angle = 20)
+text(x1, 2.5, "x1 = 0")
+
+```
+
+## Regula Falsi: A Motivative Example
+
+::: columns
+:::: column
+```{r}
+plot(x,y(x), type = "l", main = "2nd Iteration: Secant")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- 0
+x1 <- x2
+points(x0, y(x0))
+points(x1, y(x1))
+arrows(x0, 2, x0, y(x0), 
+       angle = 20)
+text(x0, 2.5, "x1 = 0")
+arrows(x1, 4, x1, y(x1), 
+       angle = 20)
+text(x1, 4.2, "x2 = 0.25")
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+points(-a/b, 0, pch = 19)
+```
+::::
+:::: column
+```{r}
+plot(x,y(x), type = "l", main = "2nd Iteration: Regula Falsi")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- 2
+x1 <- x2
+points(x0, y(x0))
+points(x1, y(x1))
+arrows(x0, 1, x0, y(x0), 
+       angle = 20)
+text(x0, 0.8, "x0 = 2")
+arrows(x1, 4, x1, y(x1), 
+       angle = 20)
+text(x1, 4.2, "x2 = 0.25")
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+points(-a/b, 0, pch = 19)
+```
+::::
+:::
+
+## Regula Falsi
+A variant of the Secant Method where instead of choosing the secant through $(x_n, g(x_n))$ and $(x_{n-1}, g(x_{n-1}))$, one finds the secant through $(x_n, g(x_n))$ and $(x_{n'}, g(x_{x'}))$ where $n' < n$ is the largest index for which $g(x_n)g(x_{n'})<0$.
+
+```{r, fig.height=4.5}
+y <- function(x){x^3 - 1}
+regula_falsi_method_ex <- function(FUN = y, x0, x1, e_tol = 1e-5)
+{
+  xn <- matrix(c(x0, x1), nrow = 1)
+  fn <- matrix(c(y(x0), y(x1)), nrow = 1)
+  i <-  2
+  err <- Inf
+  while(err > e_tol)
+  {
+    b <- (y(xn[i-1,1]) - y(xn[i-1,2]))/(xn[i-1,1]-xn[i-1,2])
+    a <- y(xn[i-1,1]) - b * (xn[i-1,1])
+    x_new <- -a/b
+    y_new <- y(x_new)
+    if(y(xn[i-1,1]) * y_new <0)
+    {
+      xn <- rbind(xn, c(xn[i-1,1], x_new))
+      fn <- rbind(fn, c(y(xn[i-1,1]), y_new))
+    }else{
+      xn <- rbind(xn, c(x_new, xn[i-1,2]))
+      fn <- rbind(fn, c(y_new, y(xn[i-1,1])))
+    }
+    err <- abs(y_new)
+    i <- i + 1
+  }
+  return(list(fn = fn,
+              xn = xn,
+              err = err))
+}
+temp <- regula_falsi_method_ex(y, 2, 0)
+x <- seq(0,2.01, 0.1)
+plot(x,y(x), type = "l", 
+     ylab = TeX("$x^3 - 1$"),
+     main = "Iterations")
+abline(h = 0, col = "cyan", lwd = 2)
+for(i in 1 : nrow(temp$fn))
+{
+  segments(temp$xn[i,1], temp$fn[i,1],
+           temp$xn[i,2], temp$fn[i,2],
+           col = rgb(153/255, 50/255, 204/255, 
+                 seq(0.2,1, length.out = nrow(temp$xn))))
+}
+```
+
+## Regula Falsi: Order of Convergence
+Like the Bisection Method, the Regula Falsi is "safe". However, from the previous example, we see that this method is in general a first-order method.\linebreak
+Especially, if $g(x)$ is convex on $[x_0, x_1]$, then 
+\[|\epsilon_{n+1}| \approx C|\epsilon_n||\epsilon_0| = C'|\epsilon_n|\]
+The Regula Falsi Method tends to retain one end-point for several iterations. As a result, it can be a good "start" method or a part of a "hybrid" method, but it should not be used near a root. 
+
+## Illinois Algorithm: Building on the Regula Falsi
 
 
-## Illinois Algorithm
+
 
 
 # Stopping and Condition 
