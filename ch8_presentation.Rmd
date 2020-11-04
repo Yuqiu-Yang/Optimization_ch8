@@ -17,8 +17,6 @@ knitr::opts_chunk$set(echo = FALSE)
 library(latex2exp)
 library(knitr)
 library(kableExtra)
-library(gridExtra)
-library(grid)
 ```
 
 # Safe Univariate Methods:
@@ -157,7 +155,7 @@ By the Secant Method, we have $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g
 
 ## The Secant Method: Order of convergence 
 Let the root the Secant Method approaches be $c$, then
-\[0=g(c)-g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
+\[0=g(c)-g(x_n)-(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
 \[g[x_{n-1},x_n](c-x_{n+1}) + \dfrac{1}{2}(c-x_n)(c-x_{n-1})g''(\xi)\]
 By the mean value theorem, we have 
 \[g[x_{n-1},x_n] = g'(\eta), \eta\in (x_{n-1},x_n)\]
@@ -306,6 +304,9 @@ points(-a/b, 0, pch = 19)
 ```
 ::::
 :::
+\noindent In this case, since the slope of the secant used in the Secant Method is so close to 0, the root is out of our scope. \linebreak
+\linebreak
+However, by straddling the root, the Regula Falsi makes sure that the new root is always between the previous two values.
 
 ## Regula Falsi
 A variant of the Secant Method where instead of choosing the secant through $(x_n, g(x_n))$ and $(x_{n-1}, g(x_{n-1}))$, one finds the secant through $(x_n, g(x_n))$ and $(x_{n'}, g(x_{x'}))$ where $n' < n$ is the largest index for which $g(x_n)g(x_{n'})<0$.
@@ -462,14 +463,89 @@ for(i in 1 : 10)
 \noindent Compared with the Regula Falsi Method, the Illinois Algorithm gets in a small neighborhood of the root in just 4 or 5 iterations.
 
 ## Illinois Algorithm: Order of Convergence
+Recall the errors of the Secant Method satisfy: $\epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$.\linebreak
+If $g''$ is continuous, then when the Illinois Algorithm gets into a sufficient small neighborhood of the root $c$, we can assume $g'$ and $g''$ have constant sign.\linebreak
+This implies that $\dfrac{\epsilon_{n+1}}{\epsilon_n \epsilon_{n-1}}$ also has constant sign. \linebreak
+Since $g_{n-1}g_n < 0 \Rightarrow \epsilon_{n-1}\epsilon_n <0$, we then necessarily have the sign of $\epsilon_n$'s follow one of the two schemes:
+\[\dots + - + + - + + - + \dots\] 
+or \[\dots +--+--+--\dots\]
 
+## Illinois Algorithm: Order of Convergence
+Previous analysis shows that asymptotically, an end-point will be retained twice in consecutive three iterations.\linebreak
+In other words, we will perform the Illinois step (halving the function value) once every third time. \linebreak
+Further asymptotic analysis shows that an Illinois step has $\epsilon_{n+1}\approx -\epsilon_n$ \linebreak
+Putting the pieces together, we have 
+\[\epsilon = -\epsilon_{n-1}\Rightarrow \epsilon_{n+1} = -C\epsilon_{n-1}^2 \Rightarrow \epsilon_{n+2} = C^2\epsilon_{n-1}^3\]
+Via finding $p$ such that $|\epsilon_n| = M|\epsilon_{n-1}|^p$, we get $\dfrac{3}{p^2} = p \Rightarrow p \approx 1.44$
 
+## Successive Parabolic Interpolation
+Recall the Newton's Method for optimization can be written as \[x_{n+1} = x_n - \dfrac{f'(x_n)}{f''(x_n)}\]
+The essence of Newton's Method is locally approximating a function via a sequence of parabolas.\linebreak
+\linebreak
+If $f'$ or $f''$ is hard to find, the Successive Parabolic Interpolation Method can be used to find the extremum.\linebreak
+\linebreak
+In each iteration, we fit a parabola to 3 unique points and replace the "oldest" one with the extremum of the fitted parabola.
 
+## Successive Parabolic Interpolation: vs. Newton's Method
 
-
-## Optimization 
-
+::: columns
+:::: column
 ```{r}
+y <- function(x){0.25*x^4 - x}
+dy <- function(x){x^3 - 1}
+ddy <- function(x){3*x^2}
+x <- seq(0,2.01, 0.01)
+plot(x, y(x), type = "l",
+     main = "Newton's 1st Iteration")
+x0 <- 1.5
+lines(x, y(x0) + (x - x0) * dy(x0) + 
+        0.5 * ((x - x0)^2) * ddy(x0), 
+      col = 'cyan')
+points(x0, y(x0), cex = 2)
+points(x0 - dy(x0)/ddy(x0),
+       y(x0 - dy(x0)/ddy(x0)),
+       pch = 19, cex = 2)
+arrows(x0, y(x0), x0 - dy(x0)/ddy(x0),
+       y(x0 - dy(x0)/ddy(x0)),
+       angle = 20)
+legend("top", legend = c("x^4/4 - x",
+                             "Parabola"),
+       lty = 1, col = c(1, "cyan"),
+       bty = "n")
+```
+::::
+:::: column
+```{r}
+y <- function(x){0.25*x^4 - x}
+x <- seq(0,2.01, 0.01)
+plot(x, y(x), type = "l",
+     main = "Successive Parabolic 1st Iteration")
+x0 <- c(2, 1.75, 1.5)
+y0 <- y(x0)
+points(x0, y0, cex = 2)
+reg <- lm(y0 ~ x0 + I(x0^2))
+lines(x, predict(reg, data.frame(x0 = x)),
+      col = "cyan")
+temp <- unname(reg$coefficients)
+points(-temp[2]/(2 * temp[3]), y(-temp[2]/(2 * temp[3])),
+       pch = 19, cex = 2)
+
+legend("top", legend = c("x^4/4 - x",
+                             "Parabola"),
+       lty = 1, col = c(1, "cyan"),
+       bty = "n")
+```
+::::
+:::
+\noindent The parabola fitted in the Successive Parabolic Interpolation depends on the 3 points we chose. \linebreak
+\linebreak
+In the next iteration, Newton's Method will fit a parabola based on the point 1.1481.\linebreak
+\linebreak
+The Successive Parabolic Interpolation will fit a parabola based on 1.75, 1.5, and 1.2653.
+
+## Successive Parabolic Interpolation: An Example
+
+```{r, fig.height=6}
 quadratic_opt_ex <- function(FUN = y, x0, 
                              x_tol = 1e-5,
                              f_tol = 1e-5,
@@ -504,14 +580,36 @@ quadratic_opt_ex <- function(FUN = y, x0,
 }
 y <- function(x){0.25*x^4 - x}
 x <- seq(0,2.01, 0.1)
-plot(x, y(x), type = "l")
-temp <- quadratic_opt_ex(y, c(0,0.1,0.2))
-points(temp$xn, temp$fn, 
+plot(x, y(x), type = "l", main = "Iterations")
+temp <- quadratic_opt_ex(y, c(2, 1.75, 1.5))
+points(temp$xn, temp$fn, cex = 2,
        pch = 19, col = rgb(153/255, 50/255, 204/255, 
                  seq(0.1,1, length.out = length(temp$xn))))
 
 ```
+\noindent The Order of Convergence of the Successive Parabolic Interpolation is approximately 1.3.
 
+## Summary: Convergence Rates
+```{r}
+temp <- data.frame(matrix(NA,
+                          nrow = 3, 
+                          ncol = 2))
+colnames(temp) <- c("Root Finding", "Optimization")
+rownames(temp) <- c("Linear", "Superlinear",
+                    "Quadratic")
+temp[1,] <- c("Bisection, Regula Falsi", "Golden Section")
+temp[2,] <- c("Secant, Illinois", "Parabolic Interpolation")
+temp[3,] <- rep("Newton",2)
+kable(temp, "simple")
+```
 
 # Stopping and Condition 
-
+## Three options for termination
+1. Too many steps
+  + Usually indicate a serious error in problem specification
+2. No change in $x$ or No change in the function values
+  + Need to check if a root or an extremum is being approached 
+  + Root finding: in some cases, no $x$ will produce $g(x)$ "close" to 0
+  + Root finding: at some function value, there may appear to be multiple roots 
+  + Both absolute change $|x_{n+1} - x_n| < \epsilon_x$ and relative change $||x_{n+1} - x_n| < |x_n|\epsilon_x|$ can be used for $x$. 
+  + For $g$ only absolute change for root finding. Relative change is appropriate with optimization.
