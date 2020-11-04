@@ -22,22 +22,174 @@ library(grid)
 ```
 
 # Safe Univariate Methods:
+## Optimization Problem:Theory base
 
 ## Lattice Search
+Finding the maximum of a unimodel function $f$ on a discrete set of points ${1,2,...,m}$ a lattice\linebreak\linebreak
+(i)finding good end strategies for finding the mode on a small set of points\linebreak\linebreak
+(ii)employing backwards induction to start with the right strategy to match the optimal ending\linebreak\linebreak
 
+## Lattice Search:Unimodel function on discrete points
+Graph for $f(x)=-4x^2+24x$, this is a unimodel function.
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,6,0.5)
+y<-function(x){-4*(x-3)^2+36}
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(3,y(3),pch=16)
+box()
+title(main=expression(paste('Unimodel Function ',f(x)==-4*x^2+24*x)))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+abline(v=3,lty=2,lwd=2)
+text(3.2,5,'x=3')
+arrows(3.5,30,3.2,34,length=0.1)
+text(3.7,26,'Max at (3,36)')
+arrows(0.5,20,1.2,30,length=0.1)
+arrows(4.7,30,5.5,20,length=0.1)
+text(0.7,28,'increasing',srt=50)
+text(5.3,27,'decreasing',srt=-44)
+```
+\noindent for $x<3$, function value $f(x)$ is monotonically increasing, and for $x\geq3$, $f(x)$ is monotonically decreasing.\newline
 
+## Lattice Search:How to choose points to compare?
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,6,0.5)
+y<-function(x){-4*(x-3)^2+36}
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(4,y(4),pch=16)
+arrows(4.7,33,4.2,32.2,length=0.1)
+text(5,35,'(4,f(4))')
+points(1,y(1),pch=16)
+arrows(1.7,18,1.2,19.5,length = 0.1)
+text(2,17,'(1,f(1))')
+points(0.5,y(0.5),pch=4)
+points(0,y(0),pch=4)
+box()
+title(main=expression(paste('Unimodel Function ',f(x)==-4*x^2+24*x)))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+abline(v=1,lty=2,lwd=2)
+polygon(c(1,1,-5,-5),c(-5,42,42,-5),density = 10)
+```
+If $f(4)>f(1)$, then we immediately drop the points that are less than $x=1$, otherwise it will
+violate the assumption of unimodel function\newline
 
+## Lattice Search:Fibonacci Numbers
+The optimal strategy is by applying Fibonacci numbers\newline\newline
+$F_n=\{1,2,3,5,8,13,...,F_n=F_{n-1}+F_{n-2}\}$\newline\newline
+suppose we have a set of discrete points$\{1,2,3,...,m=F_n-1\}$, and we begin the searching by evaluating at the points$F_{n-2}$and$F_{n-1}$.\newline\newline
+if $f(F_{n-2})<f(F_{n-1})$, then the sub-problem is $\{F_{n-2}+1,...,F_n-1\}$ with $f(F_{n-1})$ has already been evaluated, thus a problem with $F_{n}-1$ elements needs $n-1$ evaluations to solve.
+
+## Lattice Search:Fibonacci Numbers
+$F_n=\{1,2,3,5,8,13\}$
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,5.5,0.5)
+y<-function(x){-4*(x-3)^2+36}
+plot(x,y(x),xlim=c(0,5.5),ylim=c(0,40),axes=F,ann=F)
+points(2,y(2),pch=16)
+points(3.5,y(3.5),pch=16)
+points(4.5,y(4.5),pch=16)
+box()
+title(main=expression(paste('Unimodel Function ',f(x)==-4*x^2+24*x)),sub=expression(m==F[6]-1))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+abline(v=2,lty=2,lwd=2)
+abline(v=4.5,lty=2,lwd=2)
+arrows(2.3,25,2.1,30,length=0.1)
+text(2.5,22,expression(F[4]==5))
+arrows(3.5,28,3.5,33,length=0.1)
+text(3.5,25,expression(F[5]==8))
+arrows(4.2,20,4.4,25,length=0.1)
+text(4.2,18,'?')
+text(1,35,'dropped at 1st step')
+text(5,5,'dropped at 2nd step')
+polygon(c(2,2,-5,-5),c(-5,42,42,-5),density = 10)
+polygon(c(4.5,4.5,7,7),c(-5,42,42,-5),density = 10)
+```
+For $m=F_{6}-1=12$, 5 evaluations are enough to reach the maximum value.\newline after each step, we got a sub-problem with $F_{n-1}-1$ points.\newline
+
+## Lattice Search:Details
+(i)If the values of the function are the same at $F_{n-2}$ and $F_{n-1}$, the mode must be between the two points according to our assumption, then it doesn't matter which part is dropped.\newline\newline
+(ii)If the number of points m is not one fewer than a Fibonacci number, then add some points at one side. where the value of additional points is $-\infty$.\newline\newline
 
 ## Golden Search
+A more common problem is searching for the maximum on a continuum. so without losing generality, we set the interval (0,1).\newline
+Divided the interval and use lattice search by placing m points in the interval, the set is $\{0,\frac{1}{m-1},\frac{2}{m-1},...,1\}$.\newline
+And since we knew that the lattice search is defined by the first two evaluations, let m goes to infinity, then\newline
+$lim\frac{F_{n-2}-1}{F_{n}-1}$ and $lim\frac{F_{n-1}-1}{F_{n}-1}$\newline
+set$lim\frac{F_{n-1}}{F_n}=\phi$, so that $lim\frac{F_{n}}{F_{n-1}}=\frac{1}{\phi}=lim\frac{F_{n-2}+F_{n-1}}{F_{n-1}}=\phi+1$\newline
+$\phi^2+\phi+1=0,\phi=\frac{\sqrt{5}-1}{2}\approx.0618$\newline
+which also known as the golden ratio. thus the starting points of the search are\newline $X_1=\phi^2=0.382,X_2=\phi=0.618$\newline
+The limit of the lattice search is called the golden section search.
 
-
+## Golden Search 
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,1,0.001)
+y<-function(x){-(x-.4)^2+.36}
+plot(x,y(x),type='l',xlim=c(0,1),ylim=c(0,0.4),lwd=2,axes=F,ann=F)
+points(0.382,y(0.382),pch=16)
+points(0.618,y(0.618),pch=16)
+points(0.236,y(0.236),pch=16)
+box()
+title(main=expression(paste('Unimodel Function',f(x)==-(x-0.4)^2+0.36)))
+abline(v=0.382,lty=2)
+abline(v=0.618,lty=2)
+axis(1,at=seq(0,1,0.1))
+axis(2,at=seq(0,0.4,0.05),las=2)
+polygon(c(0.618,0.618,2,2),c(-1,1,1,-1),density=20)
+arrows(0.55,0.25,0.6,0.3,length=0.1)
+arrows(0.3,0.3,0.36,0.34,length=0.1)
+arrows(0.13,0.35,0.2,0.34,length=0.1)
+text(0.5,0.22,expression(x[1]==0.618))
+text(0.25,0.27,expression(x[2]==0.382))
+text(0.07,0.37,expression(phi^3==0.236))
+```
+After the first step, the uncertainty of interval is $(0,\phi)$ and the point $X_2=0.382$ has already been evaluated. Noticed it is also the right point in the second step, which is very similar to lattice search, and we only need to evaluate one more point at $\phi^3\approx0.236$.\newline
 
 ## Bisection
+Fibonacci search is less restrictive, since the derivative of the function $f$ doesn't need to exist, but suppose the derivative of the function $f$ is available, which would convert the problem from finding maximum of a unimodel function to finding the root of a monotone function $g$ on the same interval\newline
+
+suppose $g(x)$ is defined on interval $(a,b)$, and let$g(a)<0<g(b)$. with a single evaluation at $g(\frac{a+b}{2})$, the uncertainty of interval will be halved.
+
+## Bisection
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,5,0.001)
+y<-function(x){-(x-5)^2+12}
+plot(x,y(x),type='l',xlim=c(0,5),ylim=c(-18,18),ann=F,axes=F)
+points(2.5,y(2.5),pch=16)
+box()
+axis(1,at=seq(0,5,1))
+axis(2,at=seq(-15,15,3),las=1)
+title(main=expression(paste('Monotone Function ',g(x)==-(x-5)^2+12)))
+abline(h=0,lty=1,col='blue')
+abline(v=2.5,lty=2,lwd=2)
+arrows(2,9,2.4,6.5,length=0.1)
+text(1.8,12,expression(paste(g(frac(5,2)),'>',0)))
+polygon(c(2.5,2.5,10,10),c(-20,20,20,-20),density=20)
+```
+Thus, after the first step, we reset the right endpoint as $\frac{a+b}{2}$, and repeat this procedure to get the root.
 
 # Root finding 
+## Newton's Method:Iteration Formula
+The more common problem is finding a root for a single nonlinear equation $g(x)=0$.\newline
+for function $g$, set its derivative as $g'$, we have\newline
+$g_t(x)=g(x_{old})+g'(x_{old})(x-x_{old})$\newline
+$g_t(x)=0$ is at\newline
+$x_{new}=x_{old}-\frac{g(x_{old})}{g'(x_{old})}$\newline
+by using n, the iteration formula is:\newline
+$x_{n+1}=x_n-\frac{g(x_n)}{g'(x_n)}$\newline
 
-## Newton's Method 
+## Newton's Method:
 
+## Newton's Method:quadratic convergence
+If we denote the root by $c$ and the error at iteration $n$ by $e_n=x_n-c$\newline\newline
+the relative error is $d_n=\frac{e_n}{c}=\frac{(x_n-c)}{c}$\newline\newline
+By using Taylor expansion:\newline\newline
+$g(c)=0=g(x_n)+(c-x_n)g'(x_n)+(c-x_n)^2\frac{g''(t)}{2}$\newline\newline
+where t lies between $x_n$ and $c$.\newline\newline
+$x_n-c-\frac{g(x_n)}{g'(x_n)}=(x_n-c)^2[\frac{g''(t)}{2g'(x_n)}]$\newline\newline
+$e_{n+1}=e_n^2[\frac{g''(t)}{2g'(x_n)}]$\newline
+This expression reveals the quadratic convergence of Newton's Method.
 
 ## The Secant Method 
 If $g'$ is hard or even impossible to find, we can approximate $g'(x) \approx \dfrac{g(x+h)-g(x)}{h}$. \linebreak
@@ -178,7 +330,6 @@ Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic co
   + No need to evaluate derivatives 
 2. Cons:
   + Convergence is not guaranteed 
-  + Not well behaved when $g$ is relatively flat
 
 ::: columns
 :::: column
@@ -229,288 +380,10 @@ text(x1, 1.5 , "x2 = 2")
 ::::
 :::
 
-## Regula Falsi: A Motivative Example
-Borrowing the idea of the Bisection Method, what if we start with two points that straddle the root? 
-```{r, fig.width=7, fig.height=4.5}
-y <- function(x){x^3 - 1}
-x <- seq(-0.5,2.5, 0.1)
-plot(x,y(x), type = "l", 
-     ylab = TeX("$x^3 - 1$"),
-     main = "1st Iteration")
-abline(h = 0, col = "cyan", lwd = 2)
-x0 <- 2
-x1 <- 0
-points(x0, y(x0))
-points(x1, y(x1))
-b <- (y(x1) - y(x0))/(x1-x0)
-a <- y(x0) - b * (x0)
-secant_line <- b * x + a
-lines(x, secant_line, col = "darkorchid")
-points(-a/b, 0)
-x2 <- -a/b
-arrows(x2, 4, x2, 0, 
-       angle = 20)
-text(x2, 4.2, "x2 = 0.25")
-arrows(x0, 1, x0, y(x0), 
-       angle = 20)
-text(x0, 0.8, "x0 = 2")
-arrows(x1, 2, x1, y(x1), 
-       angle = 20)
-text(x1, 2.5, "x1 = 0")
+## Regula Falsi 
 
-```
-
-## Regula Falsi: A Motivative Example
-
-::: columns
-:::: column
-```{r}
-plot(x,y(x), type = "l", main = "2nd Iteration: Secant")
-abline(h = 0, col = "cyan", lwd = 2)
-x0 <- 0
-x1 <- x2
-points(x0, y(x0))
-points(x1, y(x1))
-arrows(x0, 2, x0, y(x0), 
-       angle = 20)
-text(x0, 2.5, "x1 = 0")
-arrows(x1, 4, x1, y(x1), 
-       angle = 20)
-text(x1, 4.2, "x2 = 0.25")
-b <- (y(x1) - y(x0))/(x1-x0)
-a <- y(x0) - b * (x0)
-secant_line <- b * x + a
-lines(x, secant_line, col = "darkorchid")
-points(-a/b, 0, pch = 19)
-```
-::::
-:::: column
-```{r}
-plot(x,y(x), type = "l", main = "2nd Iteration: Regula Falsi")
-abline(h = 0, col = "cyan", lwd = 2)
-x0 <- 2
-x1 <- x2
-points(x0, y(x0))
-points(x1, y(x1))
-arrows(x0, 1, x0, y(x0), 
-       angle = 20)
-text(x0, 0.8, "x0 = 2")
-arrows(x1, 4, x1, y(x1), 
-       angle = 20)
-text(x1, 4.2, "x2 = 0.25")
-b <- (y(x1) - y(x0))/(x1-x0)
-a <- y(x0) - b * (x0)
-secant_line <- b * x + a
-lines(x, secant_line, col = "darkorchid")
-points(-a/b, 0, pch = 19)
-```
-::::
-:::
-
-## Regula Falsi
-A variant of the Secant Method where instead of choosing the secant through $(x_n, g(x_n))$ and $(x_{n-1}, g(x_{n-1}))$, one finds the secant through $(x_n, g(x_n))$ and $(x_{n'}, g(x_{x'}))$ where $n' < n$ is the largest index for which $g(x_n)g(x_{n'})<0$.
-
-```{r, fig.height=4.5}
-y <- function(x){x^3 - 1}
-regula_falsi_method_ex <- function(FUN = y, x0, x1, e_tol = 1e-5)
-{
-  xn <- matrix(c(x0, x1), nrow = 1)
-  fn <- matrix(c(y(x0), y(x1)), nrow = 1)
-  i <-  2
-  err <- Inf
-  while(err > e_tol)
-  {
-    b <- (y(xn[i-1,1]) - y(xn[i-1,2]))/(xn[i-1,1]-xn[i-1,2])
-    a <- y(xn[i-1,1]) - b * (xn[i-1,1])
-    x_new <- -a/b
-    y_new <- y(x_new)
-    if(y(xn[i-1,1]) * y_new <0)
-    {
-      xn <- rbind(xn, c(xn[i-1,1], x_new))
-      fn <- rbind(fn, c(y(xn[i-1,1]), y_new))
-    }else{
-      xn <- rbind(xn, c(x_new, xn[i-1,2]))
-      fn <- rbind(fn, c(y_new, y(xn[i-1,1])))
-    }
-    err <- abs(y_new)
-    i <- i + 1
-  }
-  return(list(fn = fn,
-              xn = xn,
-              err = err))
-}
-temp <- regula_falsi_method_ex(y, 2, 0)
-x <- seq(0,2.01, 0.1)
-plot(x,y(x), type = "l", 
-     ylab = TeX("$x^3 - 1$"),
-     main = "Iterations")
-abline(h = 0, col = "cyan", lwd = 2)
-for(i in 1 : nrow(temp$fn))
-{
-  segments(temp$xn[i,1], temp$fn[i,1],
-           temp$xn[i,2], temp$fn[i,2],
-           col = rgb(153/255, 50/255, 204/255, 
-                 seq(0.2,1, length.out = nrow(temp$xn))))
-}
-```
-
-## Regula Falsi: Order of Convergence
-Like the Bisection Method, the Regula Falsi is "safe". However, from the previous example, we see that this method is in general a first-order method.\linebreak
-Especially, if $g(x)$ is convex on $[x_0, x_1]$, then 
-\[|\epsilon_{n+1}| \approx C|\epsilon_n||\epsilon_0| = C'|\epsilon_n|\] where $C = \dfrac{g''(c)}{2g'(c)}$\linebreak
-The Regula Falsi Method tends to retain one end-point for several iterations. As a result, it can be a good "start" method or a part of a "hybrid" method, but it should not be used near a root. 
-
-## Illinois Algorithm: Building on Regula Falsi
-In the previous example, if we artificially create a shallower secant, then maybe the end-point will no longer be retained.
-```{r, fig.height=5}
-y <- function(x){x^3 - 1}
-x <- seq(0,2.01, 0.1)
-plot(x,y(x), type = "l", 
-     ylab = TeX("$x^3 - 1$"),
-     main = "")
-abline(h = 0, col = "cyan", lwd = 2)
-x0 <- 2
-x1 <- 0
-b <- (y(x1) - y(x0))/(x1-x0)
-a <- y(x0) - b * (x0)
-secant_line <- b * x + a
-lines(x, secant_line, col = "darkorchid")
-x1 <- -a/b
-b <- (y(x1) - y(x0)/8)/(x1-x0)
-a <- y(x0)/8 - b * (x0)
-secant_line <- b * x + a
-lines(x, secant_line, col = "orange",
-      lty = 6)
-points(x1, y(x1), pch = 19, col = "darkorchid", cex= 1.5)
-points(-a/b, y(-a/b), pch = 19, col = "orange", cex = 1.5)
-segments(x1, 0, 
-         x1, y(x1), lty = 2)
-segments(x0, y(x0),
-         x0, y(x0)/8, lty = 2)
-segments(-a/b, 0,
-         -a/b, y(-a/b), lty = 2)
-legend("topleft", legend = c("1st iter",
-                             "2nd iter",
-                             "0.25", "1.176"),
-       col = c("darkorchid", "orange"),
-       lty = c(1,6, NA,NA),pch = c(NA,NA, 19,19),
-       bty = "n", cex = 1.5)
-
-```
-\noindent By dividing the function value at 2 by 8 and calculating the new secant, we find a new root on right of the root. In the next iternation, the new root 1.176 instead of 2 will be used.
 
 ## Illinois Algorithm
-1. During the Regula Falsi procedure, once we find one end-point has been retained more than once, we half the function value at that point, find the secant line and the new root.
-2. If the point still retains, we repeat Step 1.
-3. Once the point changes, we proceed with the Regula Falsi
-
-## Illinois Algorithm: An Example
-```{r, fig.height=5.5}
-y <- function(x){x^3 - 1}
-illinois_ex <- function(FUN = y, x0, x1, e_tol = 1e-5)
-{
-  xn <- matrix(c(x0, x1), nrow = 1)
-  fn <- matrix(c(y(x0), y(x1)), nrow = 1)
-  err <- Inf
-  i <- 2
-  while(err > e_tol)
-  {
-    y_vec <- c(fn[i-1,1], fn[i-1,2])
-    if(i > 2)
-    {
-      if(xn[i-1,1] == xn[i-2,1])
-      {
-        y_vec[1] <- y_vec[1]/2
-      }else if(xn[i-1,2] == xn[i-2,2]){
-        y_vec[2] <- y_vec[2]/2
-      }
-    }
-    b <- (y_vec[1] - y_vec[2])/(xn[i-1,1]-xn[i-1,2])
-    a <- y_vec[1] - b * (xn[i-1,1])
-    x_new <- -a/b
-    y_new <- y(x_new)
-    if((y_vec[1]) * y_new < 0)
-    {
-      xn <- rbind(xn, c(xn[i-1,1], x_new))
-      fn <- rbind(fn, c(y_vec[1], y_new))
-    }else{
-      xn <- rbind(xn, c(x_new, xn[i-1,2]))
-      fn <- rbind(fn, c(y_new, y_vec[2]))
-    }
-    err <- abs(y_new)
-    i <- i + 1
-  }
-  return(list(fn = fn,
-              xn = xn,
-              err = err))
-}
-
-temp <- illinois_ex(y, 2, 0)
-x <- seq(0,2.01, 0.1)
-plot(x,y(x), type = "l", 
-     ylab = TeX("$x^3 - 1$"),
-     main = "Iterations")
-abline(h = 0, col = "cyan", lwd = 2)
-for(i in 1 : 10)
-{
-  segments(temp$xn[i,1], temp$fn[i,1],
-           temp$xn[i,2], temp$fn[i,2],
-           col = rgb(153/255, 50/255, 204/255, 
-                 seq(0.8,1, length.out = 10)))
-}
-```
-\noindent Compared with the Regula Falsi Method, the Illinois Algorithm gets in a small neighborhood of the root in just 4 or 5 iterations.
-
-## Illinois Algorithm: Order of Convergence
-
-
-
-
-
-## Optimization 
-
-```{r}
-quadratic_opt_ex <- function(FUN = y, x0, 
-                             x_tol = 1e-5,
-                             f_tol = 1e-5,
-                             max_n_iter = 1000)
-{
-  xn <- x0
-  fn <- y(x0)
-  f_err <- Inf
-  x_err <- Inf
-  i <- 4
-  while((i < max_n_iter) & 
-        (f_err > f_tol) &
-        (x_err > x_tol))
-  {
-    x_temp <- xn[(i - 3) : (i - 1)]
-    y_temp <- fn[(i - 3) : (i - 1)]
-    reg <- lm(y_temp ~ x_temp + I(x_temp^2))
-    coef <- unname(reg$coefficients)
-    
-    x_new <- -coef[2]/(2 * coef[3])
-    y_new <- y(x_new)
-    xn <- c(xn, x_new)
-    fn <- c(fn, y_new)
-    x_err <- abs(xn[i] - xn[i-1])
-    f_err <- abs(fn[i] - fn[i-1])
-    i <- i + 1
-  }
-  return(list(fn = fn,
-              xn = xn,
-              x_err = x_err,
-              f_err = f_err))
-}
-y <- function(x){0.25*x^4 - x}
-x <- seq(0,2.01, 0.1)
-plot(x, y(x), type = "l")
-temp <- quadratic_opt_ex(y, c(0,0.1,0.2))
-points(temp$xn, temp$fn, 
-       pch = 19, col = rgb(153/255, 50/255, 204/255, 
-                 seq(0.1,1, length.out = length(temp$xn))))
-
-```
 
 
 # Stopping and Condition 
