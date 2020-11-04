@@ -464,7 +464,54 @@ for(i in 1 : 10)
 ## Illinois Algorithm: Order of Convergence
 
 
+
+
+
 ## Optimization 
+
+```{r}
+quadratic_opt_ex <- function(FUN = y, x0, 
+                             x_tol = 1e-5,
+                             f_tol = 1e-5,
+                             max_n_iter = 1000)
+{
+  xn <- x0
+  fn <- y(x0)
+  f_err <- Inf
+  x_err <- Inf
+  i <- 4
+  while((i < max_n_iter) & 
+        (f_err > f_tol) &
+        (x_err > x_tol))
+  {
+    x_temp <- xn[(i - 3) : (i - 1)]
+    y_temp <- fn[(i - 3) : (i - 1)]
+    reg <- lm(y_temp ~ x_temp + I(x_temp^2))
+    coef <- unname(reg$coefficients)
+    
+    x_new <- -coef[2]/(2 * coef[3])
+    y_new <- y(x_new)
+    xn <- c(xn, x_new)
+    fn <- c(fn, y_new)
+    x_err <- abs(xn[i] - xn[i-1])
+    f_err <- abs(fn[i] - fn[i-1])
+    i <- i + 1
+  }
+  return(list(fn = fn,
+              xn = xn,
+              x_err = x_err,
+              f_err = f_err))
+}
+y <- function(x){0.25*x^4 - x}
+x <- seq(0,2.01, 0.1)
+plot(x, y(x), type = "l")
+temp <- quadratic_opt_ex(y, c(0,0.1,0.2))
+points(temp$xn, temp$fn, 
+       pch = 19, col = rgb(153/255, 50/255, 204/255, 
+                 seq(0.1,1, length.out = length(temp$xn))))
+
+```
+
 
 # Stopping and Condition 
 
