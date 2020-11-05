@@ -1,0 +1,554 @@
+---
+title: "Introduction to Optimization and Nonlinear Equations"
+author: "Zeyu Lu & Yuqiu Yang"
+header-includes:
+  - \usepackage{subfig}
+output: 
+  beamer_presentation:
+    theme: "Berkeley"
+    colortheme: "dolphin"
+    fonttheme: "structurebold"
+    toc: true
+    slide_level: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(latex2exp)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
+```
+
+# Safe Univariate Methods:
+
+## Optimization Problem:Definition
+In mathematics, computer science and economics, an optimization problem is the problem of finding the best solution from all feasible solutions.--wiki\newline\newline
+
+Such as finding the maximum/minimum value for a certain function that is defined on a discrete set/continuum\newline\newline
+
+## Optimization Problem:examples
+```{r, fig.align='center', fig.height=11, echo=FALSE}
+x<-seq(0,10,0.001)
+y1<-function(x){(x-5)^2+25}
+y2<-function(x){-(x-3)^2+18}
+y3<-function(x){(x-5)^3}
+y4<-function(x){2*abs(x-5)+10}
+par(mfrow=c(2,2)) 
+plot(x,y1(x),type='l',col='blue',main=expression(f(x)==(x-5)^2+25))
+plot(x,y2(x),type='l',col='green',main=expression(f(x)==-(x-3)^2+18))
+plot(x,y3(x),type='l',col='red',main=expression(f(x)==(x-5)^3))
+plot(x,y4(x),type='l',col='yellow',main=expression(f(x)==2*abs(x-5)+10))
+```
+
+## Optimization Problem:Assumptions and efficiency
+What assumptions needed for each algorithm?\newline\newline
+which algorithm is less restrictive?\newline\newline
+How to evaluate the efficiency of an algorithm?\newline\newline
+by counting how many evaluations needed to reach the maximum/root.\newline\newline
+also in computer program, some minor steps also need to be counted in.\newline\newline
+
+
+## Lattice Search
+Finding the maximum of a unimodel function $f$ on a discrete set of points ${1,2,...,m}$ a lattice\linebreak\linebreak
+(i)finding good end strategies for finding the mode on a small set of points\linebreak\linebreak
+(ii)employing backwards induction to start with the right strategy to match the optimal ending\linebreak\linebreak
+
+## Lattice Search:Unimodel function on discrete points
+Graph for $f(x)=-4x^2+24x$, this is a unimodel function.
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,6,0.5)
+y<-function(x){-4*(x-3)^2+36}
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(3,y(3),pch=16)
+box()
+title(main=expression(paste('Unimodel Function ',f(x)==-4*x^2+24*x)))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+abline(v=3,lty=2,lwd=2)
+text(3.2,5,'x=3')
+arrows(3.5,30,3.2,34,length=0.1)
+text(3.7,26,'Max at (3,36)')
+arrows(0.5,20,1.2,30,length=0.1)
+arrows(4.7,30,5.5,20,length=0.1)
+text(0.7,28,'increasing',srt=50)
+text(5.3,27,'decreasing',srt=-44)
+```
+\noindent for $x<3$, function value $f(x)$ is monotonically increasing, and for $x\geq3$, $f(x)$ is monotonically decreasing.\newline
+
+## Lattice Search:How to choose points to evaluate?
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,6,0.5)
+y<-function(x){-4*(x-3)^2+36}
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(4,y(4),pch=16)
+arrows(4.7,33,4.2,32.2,length=0.1)
+text(5,35,'(4,f(4))')
+points(1,y(1),pch=16)
+arrows(1.7,18,1.2,19.5,length = 0.1)
+text(2,17,'(1,f(1))')
+points(0.5,y(0.5),pch=4)
+points(0,y(0),pch=4)
+box()
+title(main=expression(paste('Unimodel Function ',f(x)==-4*x^2+24*x)))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+abline(v=1,lty=2,lwd=2)
+polygon(c(1,1,-5,-5),c(-5,42,42,-5),density = 10)
+```
+If $f(4)>f(1)$, then we immediately drop the points that are less than $x=1$, otherwise it will
+violate the assumption of unimodel function\newline
+
+## Lattice Search:How to choose points to evaluate?
+If the points are too far away from each other, then only a few portion of points can be discarded in one step, which decreases the efficiency.\newline\newline
+
+If the two points are close to center of the domain, it's difficult to reuse any of them in the next procedure, and even we hope to reuse them in the following steps, it costs resources to store them.\newline\newline
+
+## Lattice Search
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,6,0.3)
+y<-function(x){-4*(x-3)^2+36}
+par(mfrow=c(1,2))
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(2.7,y(2.7),pch=16)
+points(3,y(3),pch=16)
+box()
+title(main=expression(f(x)==-4*x^2+24*x))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+polygon(c(2.7,2.7,-1,-1),c(-10,100,100,-10),density=10)
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(0.3,y(0.3),pch=16)
+points(5.4,y(5.4),pch=16)
+box()
+title(main=expression(f(x)==-4*x^2+24*x))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+polygon(c(0.3,0.3,-1,-1),c(-10,100,100,-10),density=10)
+```
+
+## Lattice Search:Fibonacci Numbers
+The optimal strategy is by applying Fibonacci numbers\newline\newline
+$F_n=\{1,2,3,5,8,13,...,F_n=F_{n-1}+F_{n-2}\}$\newline\newline
+suppose we have a set of discrete points$\{1,2,3,...,m=F_n-1\}$, and we begin the searching by evaluating at the points$F_{n-2}$and$F_{n-1}$.\newline\newline
+if $f(F_{n-2})<f(F_{n-1})$, then the sub-problem is $\{F_{n-2}+1,...,F_n-1\}$ with $f(F_{n-1})$ has already been evaluated, thus a problem with $F_{n}-1$ elements needs $n-1$ evaluations to solve.
+
+## Lattice Search:Fibonacci Numbers
+
+## Lattice Search:Fibonacci Numbers
+$F_n=\{1,2,3,5,8,13\}$
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,5.5,0.5)
+y<-function(x){-4*(x-3)^2+36}
+plot(x,y(x),xlim=c(0,5.5),ylim=c(0,40),axes=F,ann=F)
+points(2,y(2),pch=16)
+points(3.5,y(3.5),pch=16)
+points(4.5,y(4.5),pch=16)
+box()
+title(main=expression(paste('Unimodel Function ',f(x)==-4*x^2+24*x)),sub=expression(m==F[6]-1))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+abline(v=2,lty=2,lwd=2)
+abline(v=4.5,lty=2,lwd=2)
+arrows(2.3,25,2.1,30,length=0.1)
+text(2.5,22,expression(F[4]==5))
+arrows(3.5,28,3.5,33,length=0.1)
+text(3.5,25,expression(F[5]==8))
+arrows(4.2,20,4.4,25,length=0.1)
+text(4.2,18,'?')
+text(1,35,'dropped at 1st step')
+text(5,5,'dropped at 2nd step')
+polygon(c(2,2,-5,-5),c(-5,42,42,-5),density = 10)
+polygon(c(4.5,4.5,7,7),c(-5,42,42,-5),density = 10)
+```
+For $m=F_{6}-1=12$, 5 evaluations are enough to reach the maximum value.\newline after each step, we got a sub-problem with $F_{n-1}-1$ points.\newline
+
+## Lattice Search:Details
+(i)If the values of the function are the same at $F_{n-2}$ and $F_{n-1}$, the mode must be between the two points according to our assumption, then it doesn't matter which part is dropped.\newline\newline
+(ii)If the number of points m is not one fewer than a Fibonacci number, then add some points at one side. where the value of additional points is $-\infty$.\newline\newline
+
+## Golden Section
+A more common problem is searching for the maximum on a continuum. so without losing generality, we set the interval (0,1).\newline\newline
+Divided the interval and use lattice search by placing m points in the interval, the set is\newline\newline $\{0,\frac{1}{m-1},\frac{2}{m-1},...,1\}$.\newline\newline
+First two points\newline\newline
+$lim\frac{F_{n-2}-1}{F_n-1}$ and $lim\frac{F_{n-1}-1}{F_n-1}$
+
+## Golden Section
+And since we knew that the lattice search is defined by the first two evaluations, let m goes to infinity, then\newline\newline
+set$lim\frac{F_{n-1}}{F_n}=\phi$, so that $lim\frac{F_{n}}{F_{n-1}}=\frac{1}{\phi}=lim\frac{F_{n-2}+F_{n-1}}{F_{n-1}}=\phi+1$\newline\newline
+$\phi^2+\phi+1=0,\phi=\frac{\sqrt{5}-1}{2}\approx.0618$\newline\newline
+which also known as the golden ratio. thus the starting points of the search are\newline\newline
+$X_1=\phi^2\approx0.382,X_2=\phi\approx0.618$\newline\newline
+The limit of the lattice search is called the golden section search.
+
+## Golden Section
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,1,0.001)
+y<-function(x){-(x-.4)^2+.36}
+plot(x,y(x),type='l',xlim=c(0,1),ylim=c(0,0.4),lwd=2,axes=F,ann=F)
+points(0.382,y(0.382),pch=16)
+points(0.618,y(0.618),pch=16)
+points(0.236,y(0.236),pch=16)
+box()
+title(main=expression(paste('Unimodel Function',f(x)==-(x-0.4)^2+0.36)))
+abline(v=0.382,lty=2)
+abline(v=0.618,lty=2)
+axis(1,at=seq(0,1,0.1))
+axis(2,at=seq(0,0.4,0.05),las=2)
+polygon(c(0.618,0.618,2,2),c(-1,1,1,-1),density=20)
+arrows(0.55,0.25,0.6,0.3,length=0.1)
+arrows(0.3,0.3,0.36,0.34,length=0.1)
+arrows(0.13,0.35,0.2,0.34,length=0.1)
+text(0.5,0.22,expression(phi==0.618))
+text(0.25,0.27,expression(phi^2==0.382))
+text(0.07,0.37,expression(phi^3==0.236))
+```
+After the first step, the uncertainty of interval is $(0,\phi)$ and the point $\phi^2=0.382$ has already been evaluated. Noticed it is also the right point in the second step, which is very similar to lattice search, and we only need to evaluate one more point at $\phi^3\approx0.236$.\newline
+
+## Bisection
+Fibonacci search is less restrictive, since the derivative of the function $f$ doesn't need to exist, but suppose the derivative of the function $f$ is available, which would convert the problem from finding maximum of a unimodel function to finding the root of a monotone function $g$ on the same interval\newline
+
+suppose $g(x)$ is defined on interval $(a,b)$, and let$g(a)<0<g(b)$. with a single evaluation at $g(\frac{a+b}{2})$, the uncertainty of interval will be halved.
+
+## Bisection
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,5,0.001)
+y<-function(x){-(x-5)^2+12}
+plot(x,y(x),type='l',xlim=c(0,5),ylim=c(-18,18),ann=F,axes=F)
+points(2.5,y(2.5),pch=16)
+box()
+axis(1,at=seq(0,5,1))
+axis(2,at=seq(-15,15,3),las=1)
+title(main=expression(paste('Monotone Function ',g(x)==-(x-5)^2+12)))
+abline(h=0,lty=1,col='blue')
+abline(v=2.5,lty=2,lwd=2)
+arrows(2,9,2.4,6.5,length=0.1)
+text(1.8,12,expression(paste(g(frac(5,2)),'>',0)))
+polygon(c(2.5,2.5,10,10),c(-20,20,20,-20),density=20)
+```
+Thus, after the first step, we reset the right endpoint as $\frac{a+b}{2}$, and repeat this procedure to get the root.
+
+## Comparison:Golden Section and Bisection
+Golden Section:\newline\newline
+less restrictive, requiring only a strictly unimodel function.\newline\newline
+reduce the interval of uncertainty to $(0,\phi)$ in each iteration.\newline\newline
+
+Bisection:\newline\newline
+moew restrictive, requiring the derivative exist and be available.\newline\newline
+halve the interval of uncertainty, that is $\frac{1}{2}$.\newline\newline
+
+# Root finding 
+## Newton's Method:Iteration Formula
+The more common problem is finding a root for a single nonlinear equation $g(x)=0$.\newline
+for function $g$, set its derivative as $g'$, we have\newline
+$g_t(x)=g(x_{old})+g'(x_{old})(x-x_{old})$\newline\newline
+$g_t(x)=0$ is at\newline\newline
+$x_{new}=x_{old}-\frac{g(x_{old})}{g'(x_{old})}$\newline
+by using n, the iteration formula is:\newline\newline
+$x_{n+1}=x_n-\frac{g(x_n)}{g'(x_n)}$\newline
+
+## Newton's Method:Example
+::: columns
+:::: column
+```{r, fig.align='center', fig.height=11, echo=FALSE}
+x<-seq(0,5,0.001)
+y<-function(x){-(x-5)^2+12}
+y.dev<-function(x){-2*x+10}
+plot(x,y(x),type='l',xlim=c(0,5),ylim=c(-18,18),ann=F,axes=F)
+x=4
+xn<-c()
+gn<-c()
+gn.d<-c()
+for(i in 1:10){
+  points(x,y(x),pch=16)
+  xn[i]<-x
+  gn[i]<-y(x)
+  gn.d[i]<-y.dev(x)
+  x<-x-y(x)/y.dev(x)
+}
+box()
+axis(1,at=seq(0,5,1))
+axis(2,at=seq(-15,15,3),las=1)
+title(main=expression(paste('Monotone Function ',g(x)==-(x-5)^2+12)))
+arrows(3.5,12,3.9,11.2,length=0.1)
+arrows(2,-6,1.55,-0.3,length=0.1)
+text(3.3,12,'Starting point',cex=1.5)
+text(2.1,-8,'Points are gathering here after several steps',cex=1.5)
+abline(h=0,lty=1,col='blue')
+```
+:::
+:::: column
+```{r}
+######
+test.data <- data.frame(matrix(NA, nrow = 10,
+                             ncol = 3))
+colnames(test.data) <- c("n", "xn", "gn")
+test.data$n <- c(1:10)
+test.data$xn <- xn
+test.data$gn <- gn
+knitr::kable(test.data, "simple")
+
+```
+::::
+:::
+
+## Newton's Method:Quadratic Convergence
+If we denote the root by $c$ and the error at iteration $n$ by $e_n=x_n-c$\newline\newline
+the relative error is $d_n=\frac{e_n}{c}=\frac{(x_n-c)}{c}$\newline\newline
+By using Taylor expansion:\newline\newline
+$g(c)=0=g(x_n)+(c-x_n)g'(x_n)+(c-x_n)^2\frac{g''(t)}{2}$\newline\newline
+where t lies between $x_n$ and $c$.\newline\newline
+
+## Newton's Method:Quadratic Convergence
+noticed $e_{n+1}=x_{n+1}-c=x_n-\frac{g(x_n)}{g'(x_n)}-c$\newline\newline
+substitute into the equation.\newline\newline
+$x_n-c-\frac{g(x_n)}{g'(x_n)}=(x_n-c)^2[\frac{g''(t)}{2g'(x_n)}]$\newline\newline
+$e_{n+1}=e_n^2[\frac{g''(t)}{2g'(x_n)}]$\newline\newline
+This expression reveals the quadratic convergence of Newton's Method.\newline
+
+## Newton's Method:steep or flat?
+::: columns
+:::: column
+```{r, fig.align='center', fig.height=11, echo=FALSE}
+x<-seq(0,1,0.001)
+y<-function(x){(x-0.5)^3+0.05}
+y.d<-function(x){3*(x-0.5)^2}
+plot(x,y(x),type='l',axes=F,ann=F)
+x=0.51
+xn<-c()
+ratio<-c()
+for(i in 1:10){
+  points(x,y(x),pch=16)
+  xn[i]<-x
+  ratio[i]<-y(x)/y.d(x)
+  x<-x-y(x)/y.d(x)
+}
+abline(h=0,lty=2,lwd=2,col='blue')
+box()
+title(main=expression(paste((x-0.5)^3," Domain: (0,1)",)))
+axis(1,at=seq(0,1,0.2))
+axis(2,at=seq(-0.2,0.2,0.05),las=2)
+arrows(0.42,0.07,0.49,0.055,length=0.1)
+text(0.4,0.08,'starting point x=0.51')
+```
+:::
+:::: column
+```{r}
+######
+test.data <- data.frame(matrix(NA, nrow = 10,
+                             ncol = 3))
+colnames(test.data) <- c("n", "xn", "ratio")
+test.data$n <- c(1:10)
+test.data$xn <- round(xn,3)
+test.data$ratio <- round(ratio,3)
+knitr::kable(test.data, "simple")
+```
+::::
+:::
+noticed for a flat point, $g'(x)$ could be very small so that the next point may leap far away from the true root.\newline
+
+## Newton's Method:Pros and Cons
+Pros:\newline\newline
+Newton's method achieves the fastest rate of convergence\newline\newline
+
+Cons:\newline\newline
+the derivative function must be available, and finding it can be tedious or impossible.\newline\newline
+
+## The Secant Method 
+If $g'$ is hard or even impossible to find, we can approximate $g'(x) \approx \dfrac{g(x+h)-g(x)}{h}$. \linebreak
+\linebreak
+The iteration formula now becomes $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g(x_n) - g(x_{n-1})}$\linebreak
+\linebreak
+Notice two initial approximations are required instead of one like the Newton's method.
+
+## The Secant Method: Geometrical Interpretation
+Let $f(x) = sin(x) - (\dfrac{x}{2})^2$, $x_0 = -1.5$ and $x_{1} = 1.5$
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x <- seq(-2, 3, by = 0.01)
+y <- function(x){sin(x) - x^2/4}
+dy <- function(x) {cos(x) - x/2}
+plot(x, y(x), type = 'l',
+     main = "1st iteration Newton vs. Secant")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- -1.5
+b <- dy(x0)
+a <- y(x0) - b * (x0)
+newton_line <-  b * x + a
+lines(x, newton_line, col = "salmon")
+points(-a/b, 0, pch = 19, cex = 2, 
+       col = "salmon")
+x1 <- 1.5
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+points(-a/b, 0, pch = 19, cex = 2, 
+       col = "darkorchid")
+points(x0, y(x0))
+points(x1, y(x1))
+arrows(x0, -1, x0, y(x0), 
+       angle = 20)
+text(x0, -0.8, "x0 = -1.5")
+arrows(x1, -0.1, x1, y(x1), 
+       angle = 20)
+text(x1, -0.3 , "x1 = 1.5")
+legend("bottom", legend = c("Newton", "Secant",
+                            "Newton 1st iter",
+                            "Secant 1st iter"),
+       col = c("salmon", "darkorchid"),
+       lty = c(1,1,NA,NA),
+       pch = c(NA,NA,19,19),
+       bty = "n")
+```
+\noindent $x_{n + 1}$ is taken to be the abscissa of the point of intersection between the secant through $(x_{n-1}, f(x_{n-1}))$ and $(x_{n}, f(x_{n}))$ and the x-axis.
+
+## The Secant Method: An Example
+::: columns
+:::: column
+Let $f(x) = sin(x) - (\dfrac{x}{2})^2$\linebreak
+$x_0 = -1.5$ and $x_{1} = 1.5$\linebreak 
+```{r, echo=FALSE, fig.height=11}
+x <- seq(-2, 3, by = 0.01)
+y <- function(x){sin(x) - x^2/4}
+plot(x, y(x), type = 'l',
+     main = "Secant method")
+abline(h = 0, col = "cyan", lwd = 2)
+secant_method_ex <- function(FUN = y, x0, x1, e_tol = 1e-5)
+{
+  xn <- c(x0, x1)
+  fn <- c(y(x0), y(x1))
+  i <-  3
+  err <- Inf
+  while(err > e_tol)
+  {
+    b <- (y(xn[i-1]) - y(xn[i-2]))/(xn[i-1]-xn[i-2])
+    a <- y(xn[i-2]) - b * (xn[i-2])
+    xn <- c(xn, -a/b)
+    fn <- c(fn, y(-a/b))
+    err <- abs(y(-a/b))
+    i <- i + 1
+  }
+  return(list(fn = fn,
+              xn = xn,
+              err = err))
+}
+temp <- secant_method_ex(y, -1.5,1.5)
+points(temp$xn, temp$fn, pch = 19, cex =2.5,
+       col = rgb(153/255, 50/255, 204/255, 
+                 seq(0.1,1, length.out = length(temp$xn))))
+```
+::::
+:::: column
+```{r}
+######
+temp_df <- data.frame(matrix(NA, nrow = length(temp$fn),
+                             ncol = 3))
+colnames(temp_df) <- c("n", "xn", "fn")
+temp_df$n <- 0:11
+temp_df$xn <- temp$xn
+temp_df$fn <- temp$fn
+knitr::kable(temp_df, "simple")
+
+```
+::::
+:::
+
+## The Secant Method: Several Definitions 
+Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we will define:\linebreak
+\linebreak
+$int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\linebreak
+\linebreak
+The divided differences \[g[x_0, x_1, \dots, x_j, x] = \dfrac{g[x_0, x_1, \dots, x_{j-1}, x] - g[x_0, x_1, \dots, x_j]}{x - x_j}\], and \[g[x_0, x] = \dfrac{g(x) - g(x_0)}{x - x_0}\]
+
+## The Secant Method: Newton's Interpolation Formula 
+Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we can interpolate these points using a polynomial $q(x)$ of degree $n$.\linebreak
+Specifically, \[q(x) = g(x_0) + \sum_{j=1}^n g[x_0, x_1, \dots, x_j]\prod_{i=0}^{j-1}(x-x_i)\], with the remainder \[g(x) - q(x) = \dfrac{g^{n+1}(\xi)\prod_{i = 0}^n(x-x_i)}{(n+1)!}\], where $\xi \in int(x_0, x_1, \dots, x_n, x)$
+
+## The Secant Method: Order of convergence 
+According to Newton's interpolation formula, we have \[g(x) = g(x_n) + (x-x_n)g[x_{n-1},x_n]+\dfrac{1}{2}(x-x_n)(x-x_{n-1})g''(\xi)\] where $g[x_{n-1},x_n] = \dfrac{g(x_n)-g(x_{n-1})}{x_n-x_{n-1}}$, and $\xi \in int(x, x_n, x_{n-1})$\linebreak
+\linebreak
+By the Secant Method, we have $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g(x_n) - g(x_{n-1})}\Rightarrow \linebreak \linebreak
+0 = g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n]$
+
+## The Secant Method: Order of convergence 
+Let the root the Secant Method approaches be $c$, then
+\[0=g(c)-g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
+\[g[x_{n-1},x_n](c-x_{n+1}) + \dfrac{1}{2}(c-x_n)(c-x_{n-1})g''(\xi)\]
+By the mean value theorem, we have 
+\[g[x_{n-1},x_n] = g'(\eta), \eta\in (x_{n-1},x_n)\]
+Let $\epsilon_n = c - x_n$, we get $0=g'(\eta)\epsilon_{n+1} + \dfrac{1}{2}\epsilon_n \epsilon_{n-1}g''(\xi)\Rightarrow \linebreak 
+\epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$
+
+## The Secant Method: Order of convergence 
+Now suppose the Secant Method converges, then when $n\rightarrow \infty$, $\xi \approx c$ and $\eta \approx c$. Let $C = \dfrac{g''(c)}{2g'(c)}$, then $|\epsilon_{n+1}| = C|\epsilon_n| |\epsilon_{n-1}|$\linebreak\linebreak
+To find the order of convergence, we find $p$ such that $|\epsilon_{n+1}|\approx M|\epsilon_n|^p \Rightarrow \linebreak
+M|\epsilon_n|^p = MM|\epsilon_{n-1}|^{p}|\epsilon_{n-1}| \Rightarrow 
+|\epsilon_n| = M|\epsilon_{n-1}|^{(1+p)/p}$\linebreak
+This implies $p = (1+p)/p \Rightarrow p = 1+\phi \approx 1.618$\linebreak\linebreak
+Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic convergence), the convergence rate of the Secant Method is called \emph{superlinear}.
+
+## The Secant Method: Pros and Cons
+1. Pros:
+  + Superlinear convergence 
+  + No need to evaluate derivatives 
+2. Cons:
+  + Convergence is not guaranteed 
+
+::: columns
+:::: column
+```{r}
+y <- function(x){x^2}
+x <- seq(-3,3,by = 0.01)
+plot(x, y(x), type = "l", main = "First iteration")
+x0 <- 1
+x1 <- -2
+points(x0, y(x0))
+points(x1, y(x1))
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+arrows(x0, 4, x0, y(x0), 
+       angle = 20)
+text(x0, 4.2, "x0 = 1")
+arrows(x1, 1.7, x1, y(x1), 
+       angle = 20)
+text(x1, 1.5 , "x1 = -2")
+abline(h = 0, col = "cyan", lwd = 2)
+points(-a/b, 0)
+x2 <- -a/b
+arrows(2.5 , 2, x2, 0,angle = 20)
+text(2.5, 2.1 , "x2 = 2")
+```
+::::
+:::: column
+```{r}
+plot(x, y(x), type = "l", main = "Second iteration")
+x0 <- -2
+x1 <- 2
+points(x0, y(x0))
+points(x1, y(x1))
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+arrows(x0, 1.7, x0, y(x0), 
+       angle = 20)
+text(x0, 1.5, "x1 = -2")
+arrows(x1, 1.7, x1, y(x1), 
+       angle = 20)
+text(x1, 1.5 , "x2 = 2")
+
+```
+::::
+:::
+
+## Regula Falsi 
+
+
+## Illinois Algorithm
+
+
+# Stopping and Condition 
+
