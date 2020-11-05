@@ -443,7 +443,7 @@ By the Secant Method, we have $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g
 
 ## The Secant Method: Order of convergence 
 Let the root the Secant Method approaches be $c$, then
-\[0=g(c)-g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
+\[0=g(c)-g(x_n)-(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
 \[g[x_{n-1},x_n](c-x_{n+1}) + \dfrac{1}{2}(c-x_n)(c-x_{n-1})g''(\xi)\]
 By the mean value theorem, we have 
 \[g[x_{n-1},x_n] = g'(\eta), \eta\in (x_{n-1},x_n)\]
@@ -464,6 +464,7 @@ Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic co
   + No need to evaluate derivatives 
 2. Cons:
   + Convergence is not guaranteed 
+  + Not well behaved when $g$ is relatively flat
 
 ::: columns
 :::: column
@@ -514,11 +515,390 @@ text(x1, 1.5 , "x2 = 2")
 ::::
 :::
 
-## Regula Falsi 
+## Regula Falsi: A Motivative Example
+Borrowing the idea of the Bisection Method, what if we start with two points that straddle the root? 
+```{r, fig.width=7, fig.height=4.5}
+y <- function(x){x^3 - 1}
+x <- seq(-0.5,2.5, 0.1)
+plot(x,y(x), type = "l", 
+     ylab = TeX("$x^3 - 1$"),
+     main = "1st Iteration")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- 2
+x1 <- 0
+points(x0, y(x0))
+points(x1, y(x1))
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+points(-a/b, 0)
+x2 <- -a/b
+arrows(x2, 4, x2, 0, 
+       angle = 20)
+text(x2, 4.2, "x2 = 0.25")
+arrows(x0, 1, x0, y(x0), 
+       angle = 20)
+text(x0, 0.8, "x0 = 2")
+arrows(x1, 2, x1, y(x1), 
+       angle = 20)
+text(x1, 2.5, "x1 = 0")
 
+```
+
+## Regula Falsi: A Motivative Example
+
+::: columns
+:::: column
+```{r}
+plot(x,y(x), type = "l", main = "2nd Iteration: Secant")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- 0
+x1 <- x2
+points(x0, y(x0))
+points(x1, y(x1))
+arrows(x0, 2, x0, y(x0), 
+       angle = 20)
+text(x0, 2.5, "x1 = 0")
+arrows(x1, 4, x1, y(x1), 
+       angle = 20)
+text(x1, 4.2, "x2 = 0.25")
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+points(-a/b, 0, pch = 19)
+```
+::::
+:::: column
+```{r}
+plot(x,y(x), type = "l", main = "2nd Iteration: Regula Falsi")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- 2
+x1 <- x2
+points(x0, y(x0))
+points(x1, y(x1))
+arrows(x0, 1, x0, y(x0), 
+       angle = 20)
+text(x0, 0.8, "x0 = 2")
+arrows(x1, 4, x1, y(x1), 
+       angle = 20)
+text(x1, 4.2, "x2 = 0.25")
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+points(-a/b, 0, pch = 19)
+```
+::::
+:::
+\noindent In this case, since the slope of the secant used in the Secant Method is so close to 0, the root is out of our scope. \linebreak
+\linebreak
+However, by straddling the root, the Regula Falsi makes sure that the new root is always between the previous two values.
+
+## Regula Falsi
+A variant of the Secant Method where instead of choosing the secant through $(x_n, g(x_n))$ and $(x_{n-1}, g(x_{n-1}))$, one finds the secant through $(x_n, g(x_n))$ and $(x_{n'}, g(x_{x'}))$ where $n' < n$ is the largest index for which $g(x_n)g(x_{n'})<0$.
+
+```{r, fig.height=4.5}
+y <- function(x){x^3 - 1}
+regula_falsi_method_ex <- function(FUN = y, x0, x1, e_tol = 1e-5)
+{
+  xn <- matrix(c(x0, x1), nrow = 1)
+  fn <- matrix(c(y(x0), y(x1)), nrow = 1)
+  i <-  2
+  err <- Inf
+  while(err > e_tol)
+  {
+    b <- (y(xn[i-1,1]) - y(xn[i-1,2]))/(xn[i-1,1]-xn[i-1,2])
+    a <- y(xn[i-1,1]) - b * (xn[i-1,1])
+    x_new <- -a/b
+    y_new <- y(x_new)
+    if(y(xn[i-1,1]) * y_new <0)
+    {
+      xn <- rbind(xn, c(xn[i-1,1], x_new))
+      fn <- rbind(fn, c(y(xn[i-1,1]), y_new))
+    }else{
+      xn <- rbind(xn, c(x_new, xn[i-1,2]))
+      fn <- rbind(fn, c(y_new, y(xn[i-1,1])))
+    }
+    err <- abs(y_new)
+    i <- i + 1
+  }
+  return(list(fn = fn,
+              xn = xn,
+              err = err))
+}
+temp <- regula_falsi_method_ex(y, 2, 0)
+x <- seq(0,2.01, 0.1)
+plot(x,y(x), type = "l", 
+     ylab = TeX("$x^3 - 1$"),
+     main = "Iterations")
+abline(h = 0, col = "cyan", lwd = 2)
+for(i in 1 : nrow(temp$fn))
+{
+  segments(temp$xn[i,1], temp$fn[i,1],
+           temp$xn[i,2], temp$fn[i,2],
+           col = rgb(153/255, 50/255, 204/255, 
+                 seq(0.2,1, length.out = nrow(temp$xn))))
+}
+```
+
+## Regula Falsi: Order of Convergence
+Like the Bisection Method, the Regula Falsi is "safe". However, from the previous example, we see that this method is in general a first-order method.\linebreak
+Especially, if $g(x)$ is convex on $[x_0, x_1]$, then 
+\[|\epsilon_{n+1}| \approx C|\epsilon_n||\epsilon_0| = C'|\epsilon_n|\] where $C = \dfrac{g''(c)}{2g'(c)}$\linebreak
+The Regula Falsi Method tends to retain one end-point for several iterations. As a result, it can be a good "start" method or a part of a "hybrid" method, but it should not be used near a root. 
+
+## Illinois Algorithm: Building on Regula Falsi
+In the previous example, if we artificially create a shallower secant, then maybe the end-point will no longer be retained.
+```{r, fig.height=5}
+y <- function(x){x^3 - 1}
+x <- seq(0,2.01, 0.1)
+plot(x,y(x), type = "l", 
+     ylab = TeX("$x^3 - 1$"),
+     main = "")
+abline(h = 0, col = "cyan", lwd = 2)
+x0 <- 2
+x1 <- 0
+b <- (y(x1) - y(x0))/(x1-x0)
+a <- y(x0) - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "darkorchid")
+x1 <- -a/b
+b <- (y(x1) - y(x0)/8)/(x1-x0)
+a <- y(x0)/8 - b * (x0)
+secant_line <- b * x + a
+lines(x, secant_line, col = "orange",
+      lty = 6)
+points(x1, y(x1), pch = 19, col = "darkorchid", cex= 1.5)
+points(-a/b, y(-a/b), pch = 19, col = "orange", cex = 1.5)
+segments(x1, 0, 
+         x1, y(x1), lty = 2)
+segments(x0, y(x0),
+         x0, y(x0)/8, lty = 2)
+segments(-a/b, 0,
+         -a/b, y(-a/b), lty = 2)
+legend("topleft", legend = c("1st iter",
+                             "2nd iter",
+                             "0.25", "1.176"),
+       col = c("darkorchid", "orange"),
+       lty = c(1,6, NA,NA),pch = c(NA,NA, 19,19),
+       bty = "n", cex = 1.5)
+
+```
+\noindent By dividing the function value at 2 by 8 and calculating the new secant, we find a new root on right of the root. In the next iternation, the new root 1.176 instead of 2 will be used.
 
 ## Illinois Algorithm
+1. During the Regula Falsi procedure, once we find one end-point has been retained more than once, we half the function value at that point, find the secant line and the new root.
+2. If the point still retains, we repeat Step 1.
+3. Once the point changes, we proceed with the Regula Falsi
 
+## Illinois Algorithm: An Example
+```{r, fig.height=5.5}
+y <- function(x){x^3 - 1}
+illinois_ex <- function(FUN = y, x0, x1, e_tol = 1e-5)
+{
+  xn <- matrix(c(x0, x1), nrow = 1)
+  fn <- matrix(c(y(x0), y(x1)), nrow = 1)
+  err <- Inf
+  i <- 2
+  while(err > e_tol)
+  {
+    y_vec <- c(fn[i-1,1], fn[i-1,2])
+    if(i > 2)
+    {
+      if(xn[i-1,1] == xn[i-2,1])
+      {
+        y_vec[1] <- y_vec[1]/2
+      }else if(xn[i-1,2] == xn[i-2,2]){
+        y_vec[2] <- y_vec[2]/2
+      }
+    }
+    b <- (y_vec[1] - y_vec[2])/(xn[i-1,1]-xn[i-1,2])
+    a <- y_vec[1] - b * (xn[i-1,1])
+    x_new <- -a/b
+    y_new <- y(x_new)
+    if((y_vec[1]) * y_new < 0)
+    {
+      xn <- rbind(xn, c(xn[i-1,1], x_new))
+      fn <- rbind(fn, c(y_vec[1], y_new))
+    }else{
+      xn <- rbind(xn, c(x_new, xn[i-1,2]))
+      fn <- rbind(fn, c(y_new, y_vec[2]))
+    }
+    err <- abs(y_new)
+    i <- i + 1
+  }
+  return(list(fn = fn,
+              xn = xn,
+              err = err))
+}
+
+temp <- illinois_ex(y, 2, 0)
+x <- seq(0,2.01, 0.1)
+plot(x,y(x), type = "l", 
+     ylab = TeX("$x^3 - 1$"),
+     main = "Iterations")
+abline(h = 0, col = "cyan", lwd = 2)
+for(i in 1 : 10)
+{
+  segments(temp$xn[i,1], temp$fn[i,1],
+           temp$xn[i,2], temp$fn[i,2],
+           col = rgb(153/255, 50/255, 204/255, 
+                 seq(0.8,1, length.out = 10)))
+}
+```
+\noindent Compared with the Regula Falsi Method, the Illinois Algorithm gets in a small neighborhood of the root in just 4 or 5 iterations.
+
+## Illinois Algorithm: Order of Convergence
+Recall the errors of the Secant Method satisfy: $\epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$.\linebreak
+If $g''$ is continuous, then when the Illinois Algorithm gets into a sufficient small neighborhood of the root $c$, we can assume $g'$ and $g''$ have constant sign.\linebreak
+This implies that $\dfrac{\epsilon_{n+1}}{\epsilon_n \epsilon_{n-1}}$ also has constant sign. \linebreak
+Since $g_{n-1}g_n < 0 \Rightarrow \epsilon_{n-1}\epsilon_n <0$, we then necessarily have the sign of $\epsilon_n$'s follow one of the two schemes:
+\[\dots + - + + - + + - + \dots\] 
+or \[\dots +--+--+--\dots\]
+
+## Illinois Algorithm: Order of Convergence
+Previous analysis shows that asymptotically, an end-point will be retained twice in consecutive three iterations.\linebreak
+In other words, we will perform the Illinois step (halving the function value) once every third time. \linebreak
+Further asymptotic analysis shows that an Illinois step has $\epsilon_{n+1}\approx -\epsilon_n$ \linebreak
+Putting the pieces together, we have 
+\[\epsilon = -\epsilon_{n-1}\Rightarrow \epsilon_{n+1} = -C\epsilon_{n-1}^2 \Rightarrow \epsilon_{n+2} = C^2\epsilon_{n-1}^3\]
+Via finding $p$ such that $|\epsilon_n| = M|\epsilon_{n-1}|^p$, we get $\dfrac{3}{p^2} = p \Rightarrow p \approx 1.44$
+
+## Successive Parabolic Interpolation
+Recall the Newton's Method for optimization can be written as \[x_{n+1} = x_n - \dfrac{f'(x_n)}{f''(x_n)}\]
+The essence of Newton's Method is locally approximating a function via a sequence of parabolas.\linebreak
+\linebreak
+If $f'$ or $f''$ is hard to find, the Successive Parabolic Interpolation Method can be used to find the extremum.\linebreak
+\linebreak
+In each iteration, we fit a parabola to 3 unique points and replace the "oldest" one with the extremum of the fitted parabola.
+
+## Successive Parabolic Interpolation: vs. Newton's Method
+
+::: columns
+:::: column
+```{r}
+y <- function(x){0.25*x^4 - x}
+dy <- function(x){x^3 - 1}
+ddy <- function(x){3*x^2}
+x <- seq(0,2.01, 0.01)
+plot(x, y(x), type = "l",ylab = TeX("$0.25x^4 - x$"),
+     main = "Newton's 1st Iteration")
+x0 <- 1.5
+lines(x, y(x0) + (x - x0) * dy(x0) + 
+        0.5 * ((x - x0)^2) * ddy(x0), 
+      col = 'cyan')
+points(x0, y(x0), cex = 2)
+points(x0 - dy(x0)/ddy(x0),
+       y(x0 - dy(x0)/ddy(x0)),
+       pch = 19, cex = 2)
+arrows(x0, y(x0), x0 - dy(x0)/ddy(x0),
+       y(x0 - dy(x0)/ddy(x0)),
+       angle = 20)
+legend("top", legend = c("x^4/4 - x",
+                             "Parabola"),
+       lty = 1, col = c(1, "cyan"),
+       bty = "n")
+```
+::::
+:::: column
+```{r}
+y <- function(x){0.25*x^4 - x}
+x <- seq(0,2.01, 0.01)
+plot(x, y(x), type = "l",ylab = TeX("$0.25x^4 - x$"),
+     main = "Successive Parabolic 1st Iteration")
+x0 <- c(2, 1.75, 1.5)
+y0 <- y(x0)
+points(x0, y0, cex = 2)
+reg <- lm(y0 ~ x0 + I(x0^2))
+lines(x, predict(reg, data.frame(x0 = x)),
+      col = "cyan")
+temp <- unname(reg$coefficients)
+points(-temp[2]/(2 * temp[3]), y(-temp[2]/(2 * temp[3])),
+       pch = 19, cex = 2)
+
+legend("top", legend = c("x^4/4 - x",
+                             "Parabola"),
+       lty = 1, col = c(1, "cyan"),
+       bty = "n")
+```
+::::
+:::
+\noindent The parabola fitted in the Successive Parabolic Interpolation depends on the 3 points we chose. \linebreak
+\linebreak
+In the next iteration, Newton's Method will fit a parabola based on the point 1.1481.\linebreak
+\linebreak
+The Successive Parabolic Interpolation will fit a parabola based on 1.75, 1.5, and 1.2653.
+
+## Successive Parabolic Interpolation: An Example
+
+```{r, fig.height=6}
+quadratic_opt_ex <- function(FUN = y, x0, 
+                             x_tol = 1e-5,
+                             f_tol = 1e-5,
+                             max_n_iter = 1000)
+{
+  xn <- x0
+  fn <- y(x0)
+  f_err <- Inf
+  x_err <- Inf
+  i <- 4
+  while((i < max_n_iter) & 
+        (f_err > f_tol) &
+        (x_err > x_tol))
+  {
+    x_temp <- xn[(i - 3) : (i - 1)]
+    y_temp <- fn[(i - 3) : (i - 1)]
+    reg <- lm(y_temp ~ x_temp + I(x_temp^2))
+    coef <- unname(reg$coefficients)
+    
+    x_new <- -coef[2]/(2 * coef[3])
+    y_new <- y(x_new)
+    xn <- c(xn, x_new)
+    fn <- c(fn, y_new)
+    x_err <- abs(xn[i] - xn[i-1])
+    f_err <- abs(fn[i] - fn[i-1])
+    i <- i + 1
+  }
+  return(list(fn = fn,
+              xn = xn,
+              x_err = x_err,
+              f_err = f_err))
+}
+y <- function(x){0.25*x^4 - x}
+x <- seq(0,2.01, 0.1)
+plot(x, y(x), type = "l", main = "Iterations",
+     ylab = TeX("$0.25x^4 - x$"))
+temp <- quadratic_opt_ex(y, c(2, 1.75, 1.5))
+points(temp$xn, temp$fn, cex = 2,
+       pch = 19, col = rgb(153/255, 50/255, 204/255, 
+                 seq(0.1,1, length.out = length(temp$xn))))
+
+```
+\noindent The Order of Convergence of the Successive Parabolic Interpolation is approximately 1.3.
+
+## Summary: Convergence Rates
+```{r}
+temp <- data.frame(matrix(NA,
+                          nrow = 3, 
+                          ncol = 2))
+colnames(temp) <- c("Root Finding", "Optimization")
+rownames(temp) <- c("Linear", "Superlinear",
+                    "Quadratic")
+temp[1,] <- c("Bisection, Regula Falsi", "Golden Section")
+temp[2,] <- c("Secant, Illinois", "Parabolic Interpolation")
+temp[3,] <- rep("Newton",2)
+kable(temp, "simple")
+```
 
 # Stopping and Condition 
-
+## Three options for termination
+1. Too many steps
+  + Usually indicate a serious error in problem specification
+2. No change in $x$ or No change in the function values
+  + Need to check if a root or an extremum is being approached 
+  + Root finding: in some cases, no $x$ will produce $g(x)$ "close" to 0
+  + Root finding: at some function value, there may appear to be multiple roots 
+  + Both absolute change $|x_{n+1} - x_n| < \epsilon_x$ and relative change $||x_{n+1} - x_n| < |x_n|\epsilon_x|$ can be used for $x$. 
+  + For $g$ only absolute change for root finding. Relative change is appropriate with optimization.
