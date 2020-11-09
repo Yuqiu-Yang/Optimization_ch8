@@ -43,17 +43,13 @@ plot(x,y4(x),type='l',col='yellow',main=expression(f(x)==2*abs(x-5)+10))
 ```
 
 ## Optimization Problem:Assumptions and efficiency
-What assumptions needed for each algorithm?\newline\newline
-which algorithm is less restrictive?\newline\newline
-How to evaluate the efficiency of an algorithm?\newline\newline
-by counting how many evaluations needed to reach the maximum/root.\newline\newline
-also in computer program, some minor steps also need to be counted in.\newline\newline
-
+(1)Assumptions needed for each methods?\newline\newline
+(2)which method is less restrictive?\newline\newline
+(3)How to evaluate the efficiency of a method?\newline\newline
 
 ## Lattice Search
 Finding the maximum of a unimodel function $f$ on a discrete set of points ${1,2,...,m}$ a lattice\linebreak\linebreak
-(i)finding good end strategies for finding the mode on a small set of points\linebreak\linebreak
-(ii)employing backwards induction to start with the right strategy to match the optimal ending\linebreak\linebreak
+unimodel function, A function $f(x)$ is said to be unimodal function if for some value $m$ is monotonically increasing for $x\leq m$ and monotonically decreasing for $x\geq m$.\linebreak\linebreak
 
 ## Lattice Search:Unimodel function on discrete points
 Graph for $f(x)=-4x^2+24x$, this is a unimodel function.
@@ -77,7 +73,14 @@ text(5.3,27,'decreasing',srt=-44)
 ```
 \noindent for $x<3$, function value $f(x)$ is monotonically increasing, and for $x\geq3$, $f(x)$ is monotonically decreasing.\newline
 
-## Lattice Search:How to choose points to compare?
+## Lattice Search:Optimal Strategy
+(i)finding good end strategies for finding the mode on a small set of points\linebreak\linebreak
+
+(ii)employing backwards induction to start with the right strategy to match the optimal ending\linebreak\linebreak
+
+Basically, optimal strategy means the fewest evaluations of the function $f$ that will solve all problems that meet the specifications, here is any strictly unimodel function.
+
+## Lattice Search:How to choose points to evaluate?
 ```{r, fig.align='center', out.width='70%', echo=FALSE}
 x<-seq(0,6,0.5)
 y<-function(x){-4*(x-3)^2+36}
@@ -97,8 +100,64 @@ axis(2,at=seq(0,40,5),las=2)
 abline(v=1,lty=2,lwd=2)
 polygon(c(1,1,-5,-5),c(-5,42,42,-5),density = 10)
 ```
+If $f(4)>f(1)$, then we immediately discard the points that are less than $x=1$, otherwise it will
+violate the assumption of unimodel function\newline
+
+## Lattice Search:How to choose points to evaluate?
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,6,0.5)
+y<-function(x){-4*(x-3)^2+36}
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(4,y(4),pch=16)
+points(0.5,25,pch=16)
+points(0,30,pch=16)
+arrows(4.7,33,4.2,32.2,length=0.1)
+text(5,35,'(4,f(4))')
+points(1,y(1),pch=16)
+arrows(1.7,18,1.2,19.5,length = 0.1)
+arrows(1,35,0.6,26,length=0.1)
+text(1.3,37,'violating assumption')
+text(2,17,'(1,f(1))')
+points(0.5,y(0.5),pch=4)
+points(0,y(0),pch=4)
+box()
+title(main=expression(paste('Unimodel Function ',f(x)==-4*x^2+24*x)))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+```
 If $f(4)>f(1)$, then we immediately drop the points that are less than $x=1$, otherwise it will
 violate the assumption of unimodel function\newline
+
+
+## Lattice Search:How to choose points to evaluate?
+If the points are too far away from each other, then only a few portion of points can be discarded in one step, which decreases the efficiency.\newline\newline
+
+If the two points are close to center of the domain, it's difficult to reuse any of them in the next step, and even we hope to reuse them in the following steps.\newline\newline
+
+## Lattice Search:How to choose points to evaluate?
+```{r, fig.align='center', out.width='70%', echo=FALSE}
+x<-seq(0,6,0.3)
+y<-function(x){-4*(x-3)^2+36}
+par(mfrow=c(1,2))
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(2.7,y(2.7),pch=16)
+points(3,y(3),pch=16)
+box()
+title(main=expression(f(x)==-4*x^2+24*x))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+polygon(c(2.7,2.7,-1,-1),c(-10,100,100,-10),density=10)
+arrows(3.5,25,3.1,35,length=0.1)
+text(3.7,22,'Hard to reuse')
+plot(x,y(x),xlim=c(0,6),ylim=c(0,40),axes=F,ann=F)
+points(0.3,y(0.3),pch=16)
+points(5.4,y(5.4),pch=16)
+box()
+title(main=expression(f(x)==-4*x^2+24*x))
+axis(1,at=0:10)
+axis(2,at=seq(0,40,5),las=2)
+polygon(c(0.3,0.3,-1,-1),c(-10,100,100,-10),density=10)
+```
 
 ## Lattice Search:Fibonacci Numbers
 The optimal strategy is by applying Fibonacci numbers\newline\newline
@@ -126,16 +185,16 @@ text(2.5,22,expression(F[4]==5))
 arrows(3.5,28,3.5,33,length=0.1)
 text(3.5,25,expression(F[5]==8))
 arrows(4.2,20,4.4,25,length=0.1)
-text(4.2,18,'?')
+text(4.2,18,'evaluated at 2nd step')
 text(1,35,'dropped at 1st step')
 text(5,5,'dropped at 2nd step')
 polygon(c(2,2,-5,-5),c(-5,42,42,-5),density = 10)
 polygon(c(4.5,4.5,7,7),c(-5,42,42,-5),density = 10)
 ```
-For $m=F_{6}-1=12$, 5 evaluations are enough to reach the maximum value.\newline after each step, we got a sub-problem with $F_{n-1}-1$ points.\newline
+For $m=F_{6}-1=12$, 5 evaluations are enough to reach the maximal value.\newline after each step, we got a sub-problem with $F_{n-1}-1$ points.\newline
 
 ## Lattice Search:Details
-(i)If the values of the function are the same at $F_{n-2}$ and $F_{n-1}$, the mode must be between the two points according to our assumption, then it doesn't matter which part is dropped.\newline\newline
+(i)If the values of the function are the same at $F_{n-2}$ and $F_{n-1}$, the mode must be between the two points according to our assumption, then it doesn't matter which part is discarded.\newline\newline
 (ii)If the number of points m is not one fewer than a Fibonacci number, then add some points at one side. where the value of additional points is $-\infty$.\newline\newline
 
 ## Golden Section
@@ -173,6 +232,7 @@ arrows(0.13,0.35,0.2,0.34,length=0.1)
 text(0.5,0.22,expression(phi==0.618))
 text(0.25,0.27,expression(phi^2==0.382))
 text(0.07,0.37,expression(phi^3==0.236))
+text(0.07,0.33,'2nd step')
 ```
 After the first step, the uncertainty of interval is $(0,\phi)$ and the point $\phi^2=0.382$ has already been evaluated. Noticed it is also the right point in the second step, which is very similar to lattice search, and we only need to evaluate one more point at $\phi^3\approx0.236$.\newline
 
@@ -200,25 +260,25 @@ polygon(c(2.5,2.5,10,10),c(-20,20,20,-20),density=20)
 Thus, after the first step, we reset the right endpoint as $\frac{a+b}{2}$, and repeat this procedure to get the root.
 
 ## Comparison:Golden Section and Bisection
-Golden Section:\newline\newline
-less restrictive, requiring only a strictly unimodel function.\newline\newline
-reduce the interval of uncertainty to $(0,\phi)$ in each iteration.\newline\newline
+1. Golden Section:
+  + less restrictive, requiring only a strictly unimodel function.
+  + it reduces the interval of uncertainty to $(0,\phi)$ in each iteration.
 
-Bisection:\newline\newline
-moew restrictive, requiring the derivative exist and be available.\newline\newline
-halve the interval of uncertainty, that is $\frac{1}{2}$.\newline\newline
+2. Bisection:
+  + more restrictive, requiring the derivative exist and be available.
+  + it halves the interval of uncertainty, that is $\frac{1}{2}$.
 
 # Root finding 
 ## Newton's Method:Iteration Formula
-The more common problem is finding a root for a single nonlinear equation $g(x)=0$.\newline
-for function $g$, set its derivative as $g'$, we have\newline
+The more common problem is finding a root for a single nonlinear equation $g(x)=0$.\newline\newline
+for function $g$, set its derivative as $g'$, we have\newline\newline
 $g_t(x)=g(x_{old})+g'(x_{old})(x-x_{old})$\newline\newline
 $g_t(x)=0$ is at\newline\newline
-$x_{new}=x_{old}-\frac{g(x_{old})}{g'(x_{old})}$\newline
+$x_{new}=x_{old}-\frac{g(x_{old})}{g'(x_{old})}$\newline\newline
 by using n, the iteration formula is:\newline\newline
 $x_{n+1}=x_n-\frac{g(x_n)}{g'(x_n)}$\newline
 
-## Newton's Method:
+## Newton's Method:Example
 ::: columns
 :::: column
 ```{r, fig.align='center', fig.height=11, echo=FALSE}
@@ -277,7 +337,7 @@ $x_n-c-\frac{g(x_n)}{g'(x_n)}=(x_n-c)^2[\frac{g''(t)}{2g'(x_n)}]$\newline\newlin
 $e_{n+1}=e_n^2[\frac{g''(t)}{2g'(x_n)}]$\newline\newline
 This expression reveals the quadratic convergence of Newton's Method.\newline
 
-## Newton's Method:steep and flat?
+## Newton's Method:steep or flat?
 ::: columns
 :::: column
 ```{r, fig.align='center', fig.height=11, echo=FALSE}
@@ -319,11 +379,11 @@ knitr::kable(test.data, "simple")
 noticed for a flat point, $g'(x)$ could be very small so that the next point may leap far away from the true root.\newline
 
 ## Newton's Method:Pros and Cons
-Pros:\newline\newline
-Newton's method achieves the fastest rate of convergence\newline\newline
+1. Pros:
+  + Newton's method achieves the fastest rate of convergence(quadratic).
 
-Cons:\newline\newline
-the derivative function must be available, and finding it can be tedious or impossible.\newline\newline
+2. Cons:
+  + the derivative function must be available, and finding it can be tedious or impossible.
 
 ## The Secant Method 
 If $g'$ is hard or even impossible to find, we can approximate $g'(x) \approx \dfrac{g(x+h)-g(x)}{h}$. \linebreak
@@ -763,7 +823,7 @@ Previous analysis shows that asymptotically, an end-point will be retained twice
 In other words, we will perform the Illinois step (halving the function value) once every third time. \linebreak
 Further asymptotic analysis shows that an Illinois step has $\epsilon_{n+1}\approx -\epsilon_n$ \linebreak
 Putting the pieces together, we have 
-\[\epsilon = -\epsilon_{n-1}\Rightarrow \epsilon_{n+1} = -C\epsilon_{n-1}^2 \Rightarrow \epsilon_{n+2} = C^2\epsilon_{n-1}^3\]
+\[\epsilon_{n+1} = -\epsilon_{n-1}\Rightarrow \epsilon_{n+1} = -C\epsilon_{n-1}^2 \Rightarrow \epsilon_{n+2} = C^2\epsilon_{n-1}^3\]
 Via finding $p$ such that $|\epsilon_n| = M|\epsilon_{n-1}|^p$, we get $\dfrac{3}{p^2} = p \Rightarrow p \approx 1.44$
 
 ## Successive Parabolic Interpolation
