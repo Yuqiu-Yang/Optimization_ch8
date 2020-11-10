@@ -392,7 +392,7 @@ If $g'$ is hard or even impossible to find, we can approximate $g'(x) \approx \d
 \linebreak
 The iteration formula now becomes $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g(x_n) - g(x_{n-1})}$\linebreak
 \linebreak
-Notice two initial approximations are required instead of one like the Newton's method.
+Notice two initial points are required instead of one like the Newton's method.
 
 ## The Secant Method: Geometrical Interpretation
 Let $f(x) = sin(x) - (\dfrac{x}{2})^2$, $x_0 = -1.5$ and $x_{1} = 1.5$
@@ -493,39 +493,9 @@ knitr::kable(temp_df, "simple")
 ::::
 :::
 
-<!-- ## The Secant Method: Several Definitions  -->
-<!-- Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we will define:\linebreak -->
-<!-- \linebreak -->
-<!-- $int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\linebreak -->
-<!-- \linebreak -->
-<!-- The divided differences \[g[x_0, x_1, \dots, x_j, x] = \dfrac{g[x_0, x_1, \dots, x_{j-1}, x] - g[x_0, x_1, \dots, x_j]}{x - x_j}\], and \[g[x_0, x] = \dfrac{g(x) - g(x_0)}{x - x_0}\] -->
-
-<!-- ## The Secant Method: Newton's Interpolation Formula  -->
-<!-- Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we can interpolate these points using a polynomial $q(x)$ of degree $n$.\linebreak -->
-<!-- Specifically, \[q(x) = g(x_0) + \sum_{j=1}^n g[x_0, x_1, \dots, x_j]\prod_{i=0}^{j-1}(x-x_i)\], with the remainder \[g(x) - q(x) = \dfrac{g^{n+1}(\xi)\prod_{i = 0}^n(x-x_i)}{(n+1)!}\], where $\xi \in int(x_0, x_1, \dots, x_n, x)$ -->
-
-## The Secant Method: Order of Convergence 
-Let $int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\newline
-According to Newton's interpolation formula, we have \[g(x) = g(x_n) + (x-x_n)g[x_{n-1},x_n]+\dfrac{1}{2}(x-x_n)(x-x_{n-1})g''(\xi)\] where $g[x_{n-1},x_n] = \dfrac{g(x_n)-g(x_{n-1})}{x_n-x_{n-1}}$, and $\xi \in int(x, x_n, x_{n-1})$\linebreak
-\linebreak
-By the Secant Method, we have $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g(x_n) - g(x_{n-1})}\Rightarrow \linebreak \linebreak
-0 = g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n]$
-
-## The Secant Method: Order of Convergence 
-Let the root the Secant Method approaches be $c$, then
-\[0=g(c)-g(x_n)-(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
-\[g[x_{n-1},x_n](c-x_{n+1}) + \dfrac{1}{2}(c-x_n)(c-x_{n-1})g''(\xi)\]
-By the mean value theorem, we have 
-\[g[x_{n-1},x_n] = g'(\eta), \eta\in (x_{n-1},x_n)\]
-Let $\epsilon_n = c - x_n$, we get $0=g'(\eta)\epsilon_{n+1} + \dfrac{1}{2}\epsilon_n \epsilon_{n-1}g''(\xi)\Rightarrow \linebreak 
-\epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$
-
-## The Secant Method: Order of Convergence 
-Now suppose the Secant Method converges, then when $n\rightarrow \infty$, $\xi \approx c$ and $\eta \approx c$. Let $C = |\dfrac{g''(c)}{2g'(c)}|$, then $|\epsilon_{n+1}| = C|\epsilon_n| |\epsilon_{n-1}|$\linebreak\linebreak
-To find the order of convergence, we find $M$ and $p$ such that $|\epsilon_{n+1}|\approx M|\epsilon_n|^p$, where $p$ is the convergence order.\linebreak
-$M|\epsilon_n|^p = C(M|\epsilon_{n-1}|^{p})|\epsilon_{n-1}| \Rightarrow 
-|\epsilon_n| = C|\epsilon_{n-1}|^{(1+p)/p}$\linebreak
-This implies $p = (1+p)/p \Rightarrow p = 1+\phi \approx 1.618$\linebreak\linebreak
+## The Secant Method: Order of Convergence
+Let the root the Secant Method approaches be $c$, then asymptotically, we will have \[|\epsilon_{n+1}| = C|\epsilon_n||\epsilon_{n-1}|,\] where $\epsilon_n = c - x_n$ and $C = |\dfrac{g''(c)}{2g'(c)}|$.\linebreak \linebreak
+Based on this relationship, we can find $|\epsilon_n| = C|\epsilon_{n-1}|^{1.618}$\linebreak \linebreak
 Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic convergence), the convergence rate of the Secant Method is called \emph{superlinear}.
 
 ## The Secant Method: Pros and Cons
@@ -823,20 +793,9 @@ for(i in 1 : 10)
 \noindent Compared with the Regula Falsi Method, the Illinois Algorithm gets in a small neighborhood of the root in just 4 or 5 iterations.
 
 ## Illinois Algorithm: Order of Convergence
-Recall the errors of the Secant Method satisfy: $\epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$.\linebreak
-If $g''$ is continuous, then when the Illinois Algorithm gets into a sufficient small neighborhood of the root $c$, we can assume $g'$ and $g''$ have constant sign.\linebreak
-This implies that $\dfrac{\epsilon_{n+1}}{\epsilon_n \epsilon_{n-1}}$ also has constant sign. \linebreak
-Since $g_{n-1}g_n < 0 \Rightarrow \epsilon_{n-1}\epsilon_n <0$, we then necessarily have the sign of $\epsilon_n$'s follow one of the two schemes:
-\[\dots + - + + - + + - + \dots\] 
-or \[\dots +--+--+--\dots\]
-
-## Illinois Algorithm: Order of Convergence
-Previous analysis shows that asymptotically, an end-point will be retained twice in consecutive three iterations.\linebreak
-In other words, we will perform the Illinois step (halving the function value) once every third time. \linebreak
-Further asymptotic analysis shows that an Illinois step has $\epsilon_{n+1}\approx -\epsilon_n$ \linebreak
-Putting the pieces together, we have 
-\[\epsilon_{n} = -\epsilon_{n-1}\Rightarrow \epsilon_{n+1} = -C\epsilon_{n-1}^2 \Rightarrow \epsilon_{n+2} = C^2\epsilon_{n-1}^3\]
-Via finding $p$ such that $|\epsilon_n| = M|\epsilon_{n-1}|^p$, we get $\dfrac{3}{p^2} = p \Rightarrow p \approx 1.44$
+The order of convergence of the Illinois Algorithm is found based on the following two observations: \[\epsilon_{n+1} = \dfrac{g''(c)}{2g'(c)}\epsilon_n \epsilon_{n-1}\] and 
+asymptotically, we will perform the Illinois step (halving the function value) once every third time. \linebreak \linebreak
+The order of convergence is found to be approximately 1.44.
 
 ## Successive Parabolic Interpolation
 Recall the Newton's Method for optimization can be written as \[x_{n+1} = x_n - \dfrac{f'(x_n)}{f''(x_n)}\]
@@ -976,7 +935,7 @@ kable(temp, "simple")
   + For $g$ only absolute change for root finding. Relative change is appropriate with optimization.
   
 
-# Appendix
+# Appendix (Details for order of convergence analysis)
 ## The Secant Method: Several Definitions
 Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we will define:\linebreak
 \linebreak
@@ -987,3 +946,45 @@ The divided differences \[g[x_0, x_1, \dots, x_j, x] = \dfrac{g[x_0, x_1, \dots,
 ## The Secant Method: Newton's Interpolation Formula
 Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we can interpolate these points using a polynomial $q(x)$ of degree $n$.\linebreak
 Specifically, \[q(x) = g(x_0) + \sum_{j=1}^n g[x_0, x_1, \dots, x_j]\prod_{i=0}^{j-1}(x-x_i)\], with the remainder \[g(x) - q(x) = \dfrac{g^{n+1}(\xi)\prod_{i = 0}^n(x-x_i)}{(n+1)!}\], where $\xi \in int(x_0, x_1, \dots, x_n, x)$
+
+
+## The Secant Method: Order of Convergence 
+Let $int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\newline
+According to Newton's interpolation formula, we have \[g(x) = g(x_n) + (x-x_n)g[x_{n-1},x_n]+\dfrac{1}{2}(x-x_n)(x-x_{n-1})g''(\xi)\] where $g[x_{n-1},x_n] = \dfrac{g(x_n)-g(x_{n-1})}{x_n-x_{n-1}}$, and $\xi \in int(x, x_n, x_{n-1})$\linebreak
+\linebreak
+By the Secant Method, we have $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g(x_n) - g(x_{n-1})}\Rightarrow \linebreak \linebreak
+0 = g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n]$
+
+## The Secant Method: Order of Convergence 
+Let the root the Secant Method approaches be $c$, then
+\[0=g(c)-g(x_n)-(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
+\[g[x_{n-1},x_n](c-x_{n+1}) + \dfrac{1}{2}(c-x_n)(c-x_{n-1})g''(\xi)\]
+By the mean value theorem, we have 
+\[g[x_{n-1},x_n] = g'(\eta), \eta\in (x_{n-1},x_n)\]
+Let $\epsilon_n = c - x_n$, we get $0=g'(\eta)\epsilon_{n+1} + \dfrac{1}{2}\epsilon_n \epsilon_{n-1}g''(\xi)\Rightarrow \linebreak 
+\epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$
+
+## The Secant Method: Order of Convergence 
+Now suppose the Secant Method converges, then when $n\rightarrow \infty$, $\xi \approx c$ and $\eta \approx c$. Let $C = |\dfrac{g''(c)}{2g'(c)}|$, then $|\epsilon_{n+1}| = C|\epsilon_n| |\epsilon_{n-1}|$\linebreak\linebreak
+To find the order of convergence, we find $M$ and $p$ such that $|\epsilon_{n+1}|\approx M|\epsilon_n|^p$, where $p$ is the convergence order.\linebreak
+$M|\epsilon_n|^p = C(M|\epsilon_{n-1}|^{p})|\epsilon_{n-1}| \Rightarrow 
+|\epsilon_n| = C|\epsilon_{n-1}|^{(1+p)/p}$\linebreak
+This implies $p = (1+p)/p \Rightarrow p = 1+\phi \approx 1.618$\linebreak\linebreak
+Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic convergence), the convergence rate of the Secant Method is called \emph{superlinear}.
+
+## Illinois Algorithm: Order of Convergence
+Recall the errors of the Secant Method satisfy: $\epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$.\linebreak
+If $g''$ is continuous, then when the Illinois Algorithm gets into a sufficient small neighborhood of the root $c$, we can assume $g'$ and $g''$ have constant sign.\linebreak
+This implies that $\dfrac{\epsilon_{n+1}}{\epsilon_n \epsilon_{n-1}}$ also has constant sign. \linebreak
+Since $g_{n-1}g_n < 0 \Rightarrow \epsilon_{n-1}\epsilon_n <0$, we then necessarily have the sign of $\epsilon_n$'s follow one of the two schemes:
+\[\dots + - + + - + + - + \dots\] 
+or \[\dots +--+--+--\dots\]
+
+## Illinois Algorithm: Order of Convergence
+Previous analysis shows that asymptotically, an end-point will be retained twice in consecutive three iterations.\linebreak
+In other words, we will perform the Illinois step (halving the function value) once every third time. \linebreak
+Further asymptotic analysis shows that an Illinois step has $\epsilon_{n+1}\approx -\epsilon_n$ \linebreak
+Putting the pieces together, we have 
+\[\epsilon_{n} = -\epsilon_{n-1}\Rightarrow \epsilon_{n+1} = -C\epsilon_{n-1}^2 \Rightarrow \epsilon_{n+2} = C^2\epsilon_{n-1}^3\]
+Via finding $p$ such that $|\epsilon_n| = M|\epsilon_{n-1}|^p$, we get $\dfrac{3}{p^2} = p \Rightarrow p \approx 1.44$
+
