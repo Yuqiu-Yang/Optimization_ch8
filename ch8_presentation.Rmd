@@ -10,6 +10,8 @@ output:
     fonttheme: "structurebold"
     toc: true
     slide_level: 2
+    includes:
+      in_header: header_pagenrs.tex
 ---
 
 ```{r setup, include=FALSE}
