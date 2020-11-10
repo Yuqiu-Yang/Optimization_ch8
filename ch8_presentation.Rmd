@@ -478,32 +478,40 @@ temp_df <- data.frame(matrix(NA, nrow = length(temp$fn),
                              ncol = 3))
 colnames(temp_df) <- c("n", "xn", "fn")
 temp_df$n <- 0:11
-temp_df$xn <- temp$xn
-temp_df$fn <- temp$fn
+
+xns <- c(round(temp$xn, 4), "NA")
+for(i in 1 : 12)
+{
+  xns[i] <- paste0("{", xns[i],",",xns[i+1],"}")
+}
+temp_df$xn <- xns[1:12]
+
+temp_df$fn <- round(temp$fn, 4)
 knitr::kable(temp_df, "simple")
 
 ```
 ::::
 :::
 
-## The Secant Method: Several Definitions 
-Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we will define:\linebreak
-\linebreak
-$int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\linebreak
-\linebreak
-The divided differences \[g[x_0, x_1, \dots, x_j, x] = \dfrac{g[x_0, x_1, \dots, x_{j-1}, x] - g[x_0, x_1, \dots, x_j]}{x - x_j}\], and \[g[x_0, x] = \dfrac{g(x) - g(x_0)}{x - x_0}\]
+<!-- ## The Secant Method: Several Definitions  -->
+<!-- Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we will define:\linebreak -->
+<!-- \linebreak -->
+<!-- $int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\linebreak -->
+<!-- \linebreak -->
+<!-- The divided differences \[g[x_0, x_1, \dots, x_j, x] = \dfrac{g[x_0, x_1, \dots, x_{j-1}, x] - g[x_0, x_1, \dots, x_j]}{x - x_j}\], and \[g[x_0, x] = \dfrac{g(x) - g(x_0)}{x - x_0}\] -->
 
-## The Secant Method: Newton's Interpolation Formula 
-Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we can interpolate these points using a polynomial $q(x)$ of degree $n$.\linebreak
-Specifically, \[q(x) = g(x_0) + \sum_{j=1}^n g[x_0, x_1, \dots, x_j]\prod_{i=0}^{j-1}(x-x_i)\], with the remainder \[g(x) - q(x) = \dfrac{g^{n+1}(\xi)\prod_{i = 0}^n(x-x_i)}{(n+1)!}\], where $\xi \in int(x_0, x_1, \dots, x_n, x)$
+<!-- ## The Secant Method: Newton's Interpolation Formula  -->
+<!-- Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we can interpolate these points using a polynomial $q(x)$ of degree $n$.\linebreak -->
+<!-- Specifically, \[q(x) = g(x_0) + \sum_{j=1}^n g[x_0, x_1, \dots, x_j]\prod_{i=0}^{j-1}(x-x_i)\], with the remainder \[g(x) - q(x) = \dfrac{g^{n+1}(\xi)\prod_{i = 0}^n(x-x_i)}{(n+1)!}\], where $\xi \in int(x_0, x_1, \dots, x_n, x)$ -->
 
-## The Secant Method: Order of convergence 
+## The Secant Method: Order of Convergence 
+Let $int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\newline
 According to Newton's interpolation formula, we have \[g(x) = g(x_n) + (x-x_n)g[x_{n-1},x_n]+\dfrac{1}{2}(x-x_n)(x-x_{n-1})g''(\xi)\] where $g[x_{n-1},x_n] = \dfrac{g(x_n)-g(x_{n-1})}{x_n-x_{n-1}}$, and $\xi \in int(x, x_n, x_{n-1})$\linebreak
 \linebreak
 By the Secant Method, we have $x_{n+1} = x_{n} - g(x_n)\dfrac{x_{n} - x_{n-1}}{g(x_n) - g(x_{n-1})}\Rightarrow \linebreak \linebreak
 0 = g(x_n)+(x_{n+1}-x_n)g[x_{n-1},x_n]$
 
-## The Secant Method: Order of convergence 
+## The Secant Method: Order of Convergence 
 Let the root the Secant Method approaches be $c$, then
 \[0=g(c)-g(x_n)-(x_{n+1}-x_n)g[x_{n-1},x_n] = \]
 \[g[x_{n-1},x_n](c-x_{n+1}) + \dfrac{1}{2}(c-x_n)(c-x_{n-1})g''(\xi)\]
@@ -512,11 +520,11 @@ By the mean value theorem, we have
 Let $\epsilon_n = c - x_n$, we get $0=g'(\eta)\epsilon_{n+1} + \dfrac{1}{2}\epsilon_n \epsilon_{n-1}g''(\xi)\Rightarrow \linebreak 
 \epsilon_{n+1} = \dfrac{g''(\xi)}{2g'(\eta)}\epsilon_n \epsilon_{n-1}$
 
-## The Secant Method: Order of convergence 
-Now suppose the Secant Method converges, then when $n\rightarrow \infty$, $\xi \approx c$ and $\eta \approx c$. Let $C = \dfrac{g''(c)}{2g'(c)}$, then $|\epsilon_{n+1}| = C|\epsilon_n| |\epsilon_{n-1}|$\linebreak\linebreak
-To find the order of convergence, we find $p$ such that $|\epsilon_{n+1}|\approx M|\epsilon_n|^p \Rightarrow \linebreak
-M|\epsilon_n|^p = MM|\epsilon_{n-1}|^{p}|\epsilon_{n-1}| \Rightarrow 
-|\epsilon_n| = M|\epsilon_{n-1}|^{(1+p)/p}$\linebreak
+## The Secant Method: Order of Convergence 
+Now suppose the Secant Method converges, then when $n\rightarrow \infty$, $\xi \approx c$ and $\eta \approx c$. Let $C = |\dfrac{g''(c)}{2g'(c)}|$, then $|\epsilon_{n+1}| = C|\epsilon_n| |\epsilon_{n-1}|$\linebreak\linebreak
+To find the order of convergence, we find $M$ and $p$ such that $|\epsilon_{n+1}|\approx M|\epsilon_n|^p$, where $p$ is the convergence order.\linebreak
+$M|\epsilon_n|^p = C(M|\epsilon_{n-1}|^{p})|\epsilon_{n-1}| \Rightarrow 
+|\epsilon_n| = C|\epsilon_{n-1}|^{(1+p)/p}$\linebreak
 This implies $p = (1+p)/p \Rightarrow p = 1+\phi \approx 1.618$\linebreak\linebreak
 Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic convergence), the convergence rate of the Secant Method is called \emph{superlinear}.
 
@@ -533,7 +541,8 @@ Since the exponent 1.618 lies between 1 (linear convergence) and 2 (quadratic co
 ```{r}
 y <- function(x){x^2}
 x <- seq(-3,3,by = 0.01)
-plot(x, y(x), type = "l", main = "First iteration")
+plot(x, y(x), type = "l", main = "First iteration",
+     ylab = TeX("$x^2$"))
 x0 <- 1
 x1 <- -2
 points(x0, y(x0))
@@ -557,7 +566,8 @@ text(2.5, 2.1 , "x2 = 2")
 ::::
 :::: column
 ```{r}
-plot(x, y(x), type = "l", main = "Second iteration")
+plot(x, y(x), type = "l", main = "Second iteration",
+     ylab = TeX("$x^2$"))
 x0 <- -2
 x1 <- 2
 points(x0, y(x0))
@@ -825,7 +835,7 @@ Previous analysis shows that asymptotically, an end-point will be retained twice
 In other words, we will perform the Illinois step (halving the function value) once every third time. \linebreak
 Further asymptotic analysis shows that an Illinois step has $\epsilon_{n+1}\approx -\epsilon_n$ \linebreak
 Putting the pieces together, we have 
-\[\epsilon_{n+1} = -\epsilon_{n-1}\Rightarrow \epsilon_{n+1} = -C\epsilon_{n-1}^2 \Rightarrow \epsilon_{n+2} = C^2\epsilon_{n-1}^3\]
+\[\epsilon_{n} = -\epsilon_{n-1}\Rightarrow \epsilon_{n+1} = -C\epsilon_{n-1}^2 \Rightarrow \epsilon_{n+2} = C^2\epsilon_{n-1}^3\]
 Via finding $p$ such that $|\epsilon_n| = M|\epsilon_{n-1}|^p$, we get $\dfrac{3}{p^2} = p \Rightarrow p \approx 1.44$
 
 ## Successive Parabolic Interpolation
@@ -964,3 +974,16 @@ kable(temp, "simple")
   + Root finding: at some function value, there may appear to be multiple roots 
   + Both absolute change $|x_{n+1} - x_n| < \epsilon_x$ and relative change $||x_{n+1} - x_n| < |x_n|\epsilon_x|$ can be used for $x$. 
   + For $g$ only absolute change for root finding. Relative change is appropriate with optimization.
+  
+
+# Appendix
+## The Secant Method: Several Definitions
+Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we will define:\linebreak
+\linebreak
+$int(x_0, x_1, \dots, x_n)$: the smallest interval that contains $x_0, \dots, x_n$\linebreak
+\linebreak
+The divided differences \[g[x_0, x_1, \dots, x_j, x] = \dfrac{g[x_0, x_1, \dots, x_{j-1}, x] - g[x_0, x_1, \dots, x_j]}{x - x_j}\], and \[g[x_0, x] = \dfrac{g(x) - g(x_0)}{x - x_0}\]
+
+## The Secant Method: Newton's Interpolation Formula
+Given $n + 1$ distinct pairs $\{(x_0, g(x_0)), (x_1, g(x_1)), \dots, (x_n, g(x_n))\}$, we can interpolate these points using a polynomial $q(x)$ of degree $n$.\linebreak
+Specifically, \[q(x) = g(x_0) + \sum_{j=1}^n g[x_0, x_1, \dots, x_j]\prod_{i=0}^{j-1}(x-x_i)\], with the remainder \[g(x) - q(x) = \dfrac{g^{n+1}(\xi)\prod_{i = 0}^n(x-x_i)}{(n+1)!}\], where $\xi \in int(x_0, x_1, \dots, x_n, x)$
