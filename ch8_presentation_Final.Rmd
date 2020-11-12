@@ -206,7 +206,7 @@ First two points\newline\newline
 $lim\frac{F_{n-2}-1}{F_n-1}$ and $lim\frac{F_{n-1}-1}{F_n-1}$
 
 ## Golden Section Search
-And since we knew that the lattice search is defined by the first two evaluations, let m goes to infinity, then\newline\newline
+And since we knew that the lattice search is defined by the first two evaluations, let m go to infinity, then\newline\newline
 Set$lim\frac{F_{n-1}}{F_n}=\phi$, so that $lim\frac{F_{n}}{F_{n-1}}=\frac{1}{\phi}=lim\frac{F_{n-2}+F_{n-1}}{F_{n-1}}=\phi+1$\newline\newline
 $\phi^2+\phi+1=0,\phi=\frac{\sqrt{5}-1}{2}\approx.0618$\newline\newline
 Which also known as the golden ratio. thus the starting points of the search are\newline\newline
@@ -239,9 +239,9 @@ text(0.07,0.33,'2nd step')
 After the first step, the uncertainty of interval is $(0,\phi)$ and the point $\phi^2=0.382$ has already been evaluated. Noticed it is also the right point in the second step, which is very similar to lattice search, and we only need to evaluate one more point at $\phi^3\approx0.236$.\newline
 
 ## Bisection
-Fibonacci search is less restrictive, since the derivative of the function $f$ doesn't need to exist, but suppose the derivative of the function $f$ is available, which would convert the problem from finding maximum of a unimodel function to finding the root of a monotone function $g$ on the same interval\newline
+Fibonacci search is less restrictive, since the derivative of the function $f$ doesn't need to exist, but suppose the derivative of the function $f$ is available, which would convert the problem from finding maximum of a unimodel function to finding the root of a monotone function $g$ on the same interval.\newline
 
-Suppose $g(x)$ is defined on interval $(a,b)$, and let$g(a)<0<g(b)$. with a single evaluation at $g(\frac{a+b}{2})$, the uncertainty of interval will be halved.
+Suppose $g(x)$ is defined on interval $(a,b)$, and let $g(a)<0<g(b)$. with a single evaluation at $g(\frac{a+b}{2})$, the uncertainty of interval will be halved.
 
 ## Bisection
 ```{r, fig.align='center', out.width='70%', echo=FALSE}
@@ -982,11 +982,11 @@ kable(temp, "simple")
   + Need to check if a root or an extremum is being approached 
   + Root finding: in some cases, no $x$ will produce $g(x)$ "close" to 0
   + Root finding: at some function value, there may appear to be multiple roots 
-  + Both absolute change $|x_{n+1} - x_n| < \epsilon_x$ and relative change $||x_{n+1} - x_n| < |x_n|\epsilon_x|$ can be used for $x$. 
+  + Both absolute change $|x_{n+1} - x_n| < \epsilon_x$ and relative change $|x_{n+1} - x_n| < |x_n|\epsilon_x$ can be used for $x$. 
   + For $g$ only absolute change for root finding. Relative change is appropriate with optimization.
   
 
-# Appendix (Details for order of convergence analysis)
+# Appendix (Mathematical Details)
 
 ## Newton's Method: Multivariate Case
 For optimizing a function $f$ of $p$ variables $\textbf{x}$, begin with\newline\newline
